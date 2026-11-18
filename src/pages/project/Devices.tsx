@@ -37,15 +37,15 @@ export function Devices() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-semibold">{d.name}</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{d.os} · {d.resolution}</div>
+                <div className="text-[11px] text-ink-500 mt-0.5">{d.os} · {d.resolution}</div>
               </div>
               <Tag t={d.status} />
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="text-slate-500">占用</span>
+              <span className="text-ink-500">占用</span>
               <Tag t={d.occupancy} c={d.occupancy === "执行中" ? "amber" : d.occupancy === "空闲" ? "green" : "gray"} />
             </div>
-            <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+            <div className="flex gap-2 mt-4 pt-3 border-t border-ink-100">
               <Btn v="ghost" disabled={busy === d.id} onClick={() => toggle(d.id)}>{d.status === "在线" ? "下线" : "上线"}</Btn>
               <Btn v="ghost" disabled={d.occupancy !== "执行中"} onClick={() => release(d.id)}>释放</Btn>
               <Btn v="ghost" onClick={() => { addTask(`设备巡检 · ${d.name}`, "App"); toast("已触发设备巡检任务"); }}>巡检</Btn>

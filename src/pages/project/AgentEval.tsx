@@ -62,46 +62,46 @@ export function AgentEval() {
       <section className="rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-blue-900 p-5 text-white">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.18em] text-blue-200">Agent Observability</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-brand-200">Agent Observability</div>
             <h2 className="mt-1 text-lg font-semibold">评测与真实链路验证</h2>
-            <p className="mt-1 text-xs text-slate-300">评测报告、真实 Agent 调用、LangGraph trace 与知识检索命中统一查看。</p>
+            <p className="mt-1 text-xs text-ink-300">评测报告、真实 Agent 调用、LangGraph trace 与知识检索命中统一查看。</p>
           </div>
           <div className="flex gap-2">
             <Btn v="ghost" onClick={refresh}>刷新数据</Btn>
             <Btn onClick={() => setTab("verify")}>真实链路验证</Btn>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-slate-300">
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-ink-300">
           <span className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${health?.status === "UP" ? "bg-emerald-400" : "bg-rose-400"}`} />Agent 服务 {health?.status ?? "检查中"}</span>
           <span>LLM {health?.llm ?? "-"}</span>
           <span>RAG {health?.rag ?? "-"}</span>
           <span>trace {health?.trace_store ?? "-"}</span>
-          <span className="text-slate-400">真实模型最近一轮 {report?.metrics ? `${Math.round(report.metrics.case_pass_rate * 100)}%` : "-"}</span>
+          <span className="text-ink-400">真实模型最近一轮 {report?.metrics ? `${Math.round(report.metrics.case_pass_rate * 100)}%` : "-"}</span>
         </div>
       </section>
 
       <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-1 rounded-md border border-slate-200 bg-white p-1">
+        <div className="flex gap-1 rounded-md border border-line bg-white p-1">
           {TABS.map((item) => (
             <button
               key={item.key}
               onClick={() => setTab(item.key)}
-              className={`rounded px-3 py-1.5 text-xs font-medium ${tab === item.key ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:text-slate-800"}`}
+              className={`rounded px-3 py-1.5 text-xs font-medium ${tab === item.key ? "bg-brand-50 text-brand-700" : "text-ink-500 hover:text-ink-800"}`}
             >
               {item.label}
             </button>
           ))}
         </div>
         {tab === "report" && (
-          <div className="flex items-center gap-2 text-[11px] text-slate-500">
+          <div className="flex items-center gap-2 text-[11px] text-ink-500">
             <span>报告</span>
-            <div className="flex gap-1 rounded-md bg-slate-100 p-1">
+            <div className="flex gap-1 rounded-md bg-ink-100 p-1">
               {metas.map((item) => (
                 <button
                   key={item.name}
                   disabled={!item.exists}
                   onClick={() => setReportName(item.name)}
-                  className={`rounded px-2.5 py-1 text-[11px] ${reportName === item.name ? "bg-white text-blue-700 shadow-sm" : "text-slate-500"} disabled:opacity-40`}
+                  className={`rounded px-2.5 py-1 text-[11px] ${reportName === item.name ? "bg-white text-brand-700 shadow-sm" : "text-ink-500"} disabled:opacity-40`}
                 >
                   {item.label}
                 </button>
@@ -118,7 +118,7 @@ export function AgentEval() {
           </div>
 
           <div className="grid grid-cols-6 gap-4 items-start">
-            <Card title="评测用例" className="col-span-4" extra={<span className="text-[11px] text-slate-500">{report?.results.length ?? 0} 条 · {report?.llm ?? "-"}</span>}>
+            <Card title="评测用例" className="col-span-4" extra={<span className="text-[11px] text-ink-500">{report?.results.length ?? 0} 条 · {report?.llm ?? "-"}</span>}>
               {loading && !report ? (
                 <Empty text="加载评测报告…" className="h-52" />
               ) : !report ? (
@@ -129,12 +129,12 @@ export function AgentEval() {
                   rows={report.results.map((item) => {
                     const ok = item.intent_ok && item.agent_ok && item.status_ok && item.tool_ok && item.fact_ok;
                     return [
-                      <span key="id" className="font-medium text-blue-700">{item.case_id}</span>,
-                      <span key="message" className="block max-w-52 truncate text-slate-700" title={item.message}>{item.message}</span>,
+                      <span key="id" className="font-medium text-brand-700">{item.case_id}</span>,
+                      <span key="message" className="block max-w-52 truncate text-ink-700" title={item.message}>{item.message}</span>,
                       <Tag key="intent" t={item.actual_intent} c="gray" />,
                       <span key="agent" className="text-[11px]">{item.actual_agent}</span>,
                       statusTag(item.actual_status),
-                      <span key="latency" className="text-slate-500">{item.latency_ms.toFixed(1)} ms</span>,
+                      <span key="latency" className="text-ink-500">{item.latency_ms.toFixed(1)} ms</span>,
                       <Tag key="result" t={ok ? "通过" : "失败"} c={ok ? "green" : "red"} />,
                     ];
                   })}
@@ -143,7 +143,7 @@ export function AgentEval() {
               )}
             </Card>
 
-            <Card title="用例详情" className="col-span-2" extra={<span className="text-[11px] text-slate-500">{selected?.case_id ?? "点击左侧用例"}</span>}>
+            <Card title="用例详情" className="col-span-2" extra={<span className="text-[11px] text-ink-500">{selected?.case_id ?? "点击左侧用例"}</span>}>
               {selected ? <AgentCaseDetail item={selected} /> : <Empty text="选择一条用例查看答案与 trace" className="h-52" />}
             </Card>
           </div>

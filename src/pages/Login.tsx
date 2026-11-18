@@ -35,13 +35,13 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-ink-100 flex items-center justify-center p-6">
       <Card className="w-[400px]">
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded bg-blue-600 text-white grid place-items-center text-sm font-semibold">AI</div>
+          <div className="w-8 h-8 rounded bg-brand-500 text-white grid place-items-center text-sm font-semibold">AI</div>
           <div>
             <div className="text-base font-semibold">AI 测试开发平台</div>
-            <div className="text-[11px] text-slate-500">登录后访问项目空间</div>
+            <div className="text-[11px] text-ink-500">登录后访问项目空间</div>
           </div>
         </div>
         <form onSubmit={submit} className="space-y-3">
@@ -51,8 +51,8 @@ export function Login() {
           <Btn type="submit" className="w-full" disabled={busy}>{busy ? "登录中…" : "登录"}</Btn>
         </form>
         {providers.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <div className="text-[11px] text-slate-500 mb-2">企业单点登录</div>
+          <div className="mt-4 pt-4 border-t border-ink-100">
+            <div className="text-[11px] text-ink-500 mb-2">企业单点登录</div>
             <div className="flex gap-2">
               {providers.map((provider) => (
                 <Btn key={provider.id} v="ghost" onClick={() => { window.location.href = authApi.oauthUrl(provider.id); }}>
@@ -62,7 +62,7 @@ export function Login() {
             </div>
           </div>
         )}
-        <div className="mt-5 text-[11px] text-slate-500 leading-relaxed">
+        <div className="mt-5 text-[11px] text-ink-500 leading-relaxed">
           平台采用邀请制。没有账号请联系管理员发送邀请链接。
         </div>
       </Card>

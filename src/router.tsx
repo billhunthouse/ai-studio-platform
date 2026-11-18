@@ -45,6 +45,7 @@ const Workflow = page(() => import("@/pages/project/Workflow"), "Workflow");
 const KnowledgeList = page(() => import("@/pages/project/KnowledgeList"), "KnowledgeList");
 const Documents = page(() => import("@/pages/project/Documents"), "Documents");
 const Recall = page(() => import("@/pages/project/Recall"), "Recall");
+const LearningCenter = page(() => import("@/pages/project/LearningCenter"), "LearningCenter");
 const TaskList = page(() => import("@/pages/project/TaskList"), "TaskList");
 const AgentEval = page(() => import("@/pages/project/AgentEval"), "AgentEval");
 const VersionCompare = page(() => import("@/pages/project/VersionCompare"), "VersionCompare");
@@ -110,6 +111,7 @@ export function AppRouter() {
           <Route path="knowledge" element={<KnowledgeList />} />
           <Route path="knowledge/documents" element={<Documents />} />
           <Route path="knowledge/recall" element={<Recall />} />
+          <Route path="knowledge/learning" element={<LearningCenter />} />
           <Route path="tasks" element={<TaskList />} />
           <Route path="tasks/agent-eval" element={<AgentEval />} />
           <Route path="tasks/compare" element={<VersionCompare />} />

@@ -67,7 +67,7 @@ export function CaseGenerate() {
     <div className="grid grid-cols-5 gap-4">
       <Card title="生成配置" className="col-span-2">
         <div className="space-y-3 text-xs">
-          {requirementId && <div className="text-[11px] text-blue-600 bg-blue-50 border border-blue-100 rounded px-2 py-1.5">输入来源绑定需求：{requirementId}</div>}
+          {requirementId && <div className="text-[11px] text-brand-600 bg-brand-50 border border-brand-100 rounded px-2 py-1.5">输入来源绑定需求：{requirementId}</div>}
           <Field label="输入来源">
             <Select value={src} onChange={(e) => setSrc(e.target.value)} opts={["需求文档", "原型：会员中心", "接口设计：会员中心 API"]} className="w-full" />
           </Field>
@@ -84,7 +84,7 @@ export function CaseGenerate() {
           <Field label="模型"><Select opts={MODELS} className="w-full" value={model} onChange={(e) => setModel(e.target.value)} /></Field>
           <label className="flex gap-2 items-center"><input type="checkbox" checked={rag} onChange={(e) => setRag(e.target.checked)} />启用知识库增强（RAG）</label>
           <Btn onClick={gen} disabled={busy || strategies.length === 0} className="w-full">{busy ? "生成中…" : "开始生成"}</Btn>
-          <div className="text-[11px] text-slate-500 leading-relaxed">生成结果会推送到右下角任务悬浮窗，可在「任务与报告」查看历史。</div>
+          <div className="text-[11px] text-ink-500 leading-relaxed">生成结果会推送到右下角任务悬浮窗，可在「任务与报告」查看历史。</div>
         </div>
       </Card>
 
@@ -101,7 +101,7 @@ export function CaseGenerate() {
             )}
           />
         ) : (
-          <div className="h-60 grid place-items-center text-xs text-slate-500">{busy ? "正在生成…" : "暂无草稿"}</div>
+          <div className="h-60 grid place-items-center text-xs text-ink-500">{busy ? "正在生成…" : "暂无草稿"}</div>
         )}
       </Card>
 

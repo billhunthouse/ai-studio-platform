@@ -37,11 +37,11 @@ export function AgentRealCall() {
     >
       <div className="space-y-3">
         <div>
-          <div className="mb-1 text-xs text-slate-600">用户消息</div>
+          <div className="mb-1 text-xs text-ink-600">用户消息</div>
           <Textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className="w-full" placeholder="输入要发给 Agent 的消息" />
         </div>
         <div>
-          <div className="mb-1 text-xs text-slate-600">登录态（可选，仅用于本次请求，不保存）</div>
+          <div className="mb-1 text-xs text-ink-600">登录态（可选，仅用于本次请求，不保存）</div>
           <Input
             value={authorization}
             onChange={(e) => setAuthorization(e.target.value)}
@@ -52,15 +52,15 @@ export function AgentRealCall() {
         </div>
 
         {result && (
-          <div className="space-y-2 border-t border-slate-100 pt-3">
+          <div className="space-y-2 border-t border-ink-100 pt-3">
             <div className="flex flex-wrap items-center gap-2 text-[11px]">
               <Tag t={result.response.status} c={result.response.status === "ok" ? "green" : result.response.status === "need_auth" ? "amber" : "red"} />
               <Tag t={result.response.agent} c="blue" />
               <Tag t={result.response.intent} c="gray" />
-              <span className="text-slate-500">{result.response.latency_ms.toFixed(1)} ms · {result.response.run_id}</span>
+              <span className="text-ink-500">{result.response.latency_ms.toFixed(1)} ms · {result.response.run_id}</span>
             </div>
-            <div className="rounded-md bg-slate-900 px-3 py-2.5 text-xs leading-6 text-slate-100 whitespace-pre-wrap">{result.response.answer}</div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <div className="rounded-md bg-slate-900 px-3 py-2.5 text-xs leading-6 text-ink-100 whitespace-pre-wrap">{result.response.answer}</div>
+            <div className="flex items-center justify-between text-[11px] text-ink-500">
               <span>LLM {result.trace.llm_calls.length} 次 · 工具 {result.trace.tool_calls.length} 次 · 检索 {result.trace.retrievals.length} 次</span>
               <Btn v="ghost" onClick={() => setTraceOpen(true)}>查看 Trace</Btn>
             </div>

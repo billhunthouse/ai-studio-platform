@@ -42,7 +42,7 @@ export function AuditLogPage() {
       >
         {detail && (
           <div>
-            <div className="text-xs text-slate-500 mb-2">扩展信息</div>
+            <div className="text-xs text-ink-500 mb-2">扩展信息</div>
             <pre className="bg-slate-900 text-emerald-300 rounded-md p-3 text-[11px] overflow-x-auto">{JSON.stringify(detail.detail, null, 2)}</pre>
           </div>
         )}

@@ -12,7 +12,7 @@ export function ProfileInfo() {
 
   useEffect(() => { if (data) setForm(data); }, [data]);
 
-  if (!form) return <div className="h-40 grid place-items-center text-xs text-slate-500">加载中…</div>;
+  if (!form) return <div className="h-40 grid place-items-center text-xs text-ink-500">加载中…</div>;
 
   const save = async () => {
     const next = await profileApi.update(form);
@@ -25,15 +25,15 @@ export function ProfileInfo() {
     <div className="grid grid-cols-3 gap-4">
       <Card title="账号概览">
         <div className="flex flex-col items-center py-4">
-          <div className="w-16 h-16 rounded-full bg-blue-500 text-white grid place-items-center text-xl">{form.name.slice(0, 1)}</div>
+          <div className="w-16 h-16 rounded-full bg-brand-500 text-white grid place-items-center text-xl">{form.name.slice(0, 1)}</div>
           <div className="mt-3 text-sm font-semibold">{form.name}</div>
-          <div className="text-xs text-slate-500 mt-1">{form.email}</div>
+          <div className="text-xs text-ink-500 mt-1">{form.email}</div>
           <div className="mt-2 flex gap-2"><Tag t={form.role} c="blue" /><Tag t={form.dept} c="gray" /></div>
         </div>
-        <div className="border-t border-slate-100 pt-3 text-xs space-y-2">
-          <div className="flex justify-between"><span className="text-slate-500">账号 ID</span><span>{form.id}</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">最近登录</span><span>今天 09:01 · 10.2.3.8</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Token 配额</span><span>12.8M / 15M</span></div>
+        <div className="border-t border-ink-100 pt-3 text-xs space-y-2">
+          <div className="flex justify-between"><span className="text-ink-500">账号 ID</span><span>{form.id}</span></div>
+          <div className="flex justify-between"><span className="text-ink-500">最近登录</span><span>今天 09:01 · 10.2.3.8</span></div>
+          <div className="flex justify-between"><span className="text-ink-500">Token 配额</span><span>12.8M / 15M</span></div>
         </div>
       </Card>
 

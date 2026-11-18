@@ -8,7 +8,7 @@ import { MODELS } from "@/config/constants";
 import { Btn, Card, Field, Input, Select } from "@/components/ui";
 import { cx } from "@/lib/cx";
 
-const NODE_TYPES: [string, string][] = [["LLM 调用", "bg-blue-500"], ["工具/Skill", "bg-amber-500"], ["知识库检索", "bg-emerald-500"], ["条件分支", "bg-violet-500"], ["代码节点", "bg-slate-600"]];
+const NODE_TYPES: [string, string][] = [["LLM 调用", "bg-brand-500"], ["工具/Skill", "bg-amber-500"], ["知识库检索", "bg-emerald-500"], ["条件分支", "bg-violet-500"], ["代码节点", "bg-ink-600"]];
 const STATE_TEXT: Record<string, string> = { pending: "待执行", running: "执行中", success: "成功" };
 
 export function Workflow() {
@@ -72,17 +72,17 @@ export function Workflow() {
     <div className="grid grid-cols-5 gap-4">
       <Card title="节点库">
         {NODE_TYPES.map(([t, c]) => (
-          <button key={t} onClick={() => addNode(t)} className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-slate-50 text-xs"><span className={cx("w-2.5 h-2.5 rounded-sm", c)} />{t}</button>
+          <button key={t} onClick={() => addNode(t)} className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-ink-50 text-xs"><span className={cx("w-2.5 h-2.5 rounded-sm", c)} />{t}</button>
         ))}
-        <div className="text-[11px] text-slate-500 mt-4 mb-1">预置模板</div>
+        <div className="text-[11px] text-ink-500 mt-4 mb-1">预置模板</div>
         {["需求→原型", "需求→接口"].map((t) => (
-          <button key={t} onClick={() => applyTemplate(t)} className="w-full text-left px-2 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded">{t}</button>
+          <button key={t} onClick={() => applyTemplate(t)} className="w-full text-left px-2 py-1.5 text-xs text-brand-600 hover:bg-brand-50 rounded">{t}</button>
         ))}
-        <div className="text-[11px] text-slate-500 mt-4 mb-1">已保存工作流</div>
-        {saved.length === 0 && <div className="px-2 text-[11px] text-slate-500">暂无</div>}
+        <div className="text-[11px] text-ink-500 mt-4 mb-1">已保存工作流</div>
+        {saved.length === 0 && <div className="px-2 text-[11px] text-ink-500">暂无</div>}
         {saved.map((w) => (
-          <button key={w.id} onClick={() => { setNodes(w.nodes); setName(w.name); setSelected(null); }} className="w-full text-left px-2 py-1.5 text-xs hover:bg-slate-50 rounded">
-            {w.name}<div className="text-[10px] text-slate-500">{w.updatedAt}</div>
+          <button key={w.id} onClick={() => { setNodes(w.nodes); setName(w.name); setSelected(null); }} className="w-full text-left px-2 py-1.5 text-xs hover:bg-ink-50 rounded">
+            {w.name}<div className="text-[10px] text-ink-500">{w.updatedAt}</div>
           </button>
         ))}
       </Card>
@@ -100,13 +100,13 @@ export function Workflow() {
           })}
         </svg>
         {nodes.map((n) => (
-          <button key={n.id} onClick={() => setSelected(n.id)} className={cx("absolute w-[150px] bg-white rounded-md border shadow-sm text-left overflow-hidden", selected === n.id ? "ring-2 ring-blue-500" : "border-slate-300")} style={{ left: n.x, top: n.y }}>
+          <button key={n.id} onClick={() => setSelected(n.id)} className={cx("absolute w-[150px] bg-white rounded-md border shadow-sm text-left overflow-hidden", selected === n.id ? "ring-2 ring-blue-500" : "border-ink-300")} style={{ left: n.x, top: n.y }}>
             <div className={cx("text-[10px] text-white px-2 py-0.5 flex justify-between", color(n.type))}>
               <span>{n.type}</span>
               {states[n.id] && <span>{states[n.id] === "running" ? "…" : states[n.id] === "success" ? "✓" : ""}</span>}
             </div>
             <div className="px-2 py-1.5 text-xs truncate">{n.label}</div>
-            {states[n.id] && <div className={cx("px-2 pb-1 text-[10px]", states[n.id] === "success" ? "text-emerald-600" : states[n.id] === "running" ? "text-amber-600" : "text-slate-500")}>{STATE_TEXT[states[n.id]]}</div>}
+            {states[n.id] && <div className={cx("px-2 pb-1 text-[10px]", states[n.id] === "success" ? "text-emerald-600" : states[n.id] === "running" ? "text-amber-600" : "text-ink-500")}>{STATE_TEXT[states[n.id]]}</div>}
           </button>
         ))}
       </section>
@@ -128,12 +128,12 @@ export function Workflow() {
                 <Field label="Top K"><Input value={current.config.topK ?? "5"} onChange={(e) => setNodes(nodes.map((n) => n.id === current.id ? { ...n, config: { ...n.config, topK: e.target.value } } : n))} className="w-full" /></Field>
               </>
             )}
-            {current.type === "工具/Skill" && <div className="text-[11px] text-slate-500">已插入技能：{current.label}，参数在运行前由上游变量填充。</div>}
+            {current.type === "工具/Skill" && <div className="text-[11px] text-ink-500">已插入技能：{current.label}，参数在运行前由上游变量填充。</div>}
             <Field label="超时（秒）"><Input defaultValue="120" className="w-full" /></Field>
             <Btn v="danger" onClick={() => { setNodes(nodes.filter((n) => n.id !== current.id)); setSelected(null); }}>删除节点</Btn>
           </div>
         ) : (
-          <div className="text-xs text-slate-500">选择画布中的节点进行配置</div>
+          <div className="text-xs text-ink-500">选择画布中的节点进行配置</div>
         )}
       </Card>
     </div>

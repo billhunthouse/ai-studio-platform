@@ -60,9 +60,9 @@ export function UiScripts() {
         <Card title="用例脚本" extra={<Btn v="ghost" onClick={() => setOpen(true)}>+ 新建</Btn>}>
           {data.length === 0 && <Empty text="暂无脚本" />}
           {data.map((s) => (
-            <button key={s.id} onClick={() => setSelected(s.id)} className={`w-full text-left px-2 py-2 rounded text-xs ${script?.id === s.id ? "bg-blue-50 text-blue-700" : "hover:bg-slate-50"}`}>
+            <button key={s.id} onClick={() => setSelected(s.id)} className={`w-full text-left px-2 py-2 rounded text-xs ${script?.id === s.id ? "bg-brand-50 text-brand-700" : "hover:bg-ink-50"}`}>
               <div className="flex justify-between gap-2"><span className="truncate">{s.name}</span><Tag t={s.status} /></div>
-              <div className="text-[11px] text-slate-500 mt-0.5">{s.framework} · {s.updatedAt}</div>
+              <div className="text-[11px] text-ink-500 mt-0.5">{s.framework} · {s.updatedAt}</div>
             </button>
           ))}
         </Card>
@@ -86,7 +86,7 @@ export function UiScripts() {
         <div className="space-y-3 text-xs">
           <div>脚本名称</div>
           <Input className="w-full" value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：支付流程回归" autoFocus />
-          <div className="text-[11px] text-slate-500">默认使用 Playwright + POM 模板创建。</div>
+          <div className="text-[11px] text-ink-500">默认使用 Playwright + POM 模板创建。</div>
         </div>
       </Modal>
     </>

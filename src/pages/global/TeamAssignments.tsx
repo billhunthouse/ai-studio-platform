@@ -39,13 +39,13 @@ export function TeamAssignments() {
       <div className="grid grid-cols-3 gap-4">
         {data.projects.map((p) => (
           <Card key={p.id} title={p.name} extra={<Btn v="ghost" onClick={() => openFor(p)}>+ 添加成员</Btn>}>
-            <div className="text-xs text-slate-500 mb-3">{p.description}</div>
+            <div className="text-xs text-ink-500 mb-3">{p.description}</div>
             <div className="space-y-2">
-              {p.members.length === 0 && <div className="h-16 grid place-items-center text-xs text-slate-500">暂无成员</div>}
+              {p.members.length === 0 && <div className="h-16 grid place-items-center text-xs text-ink-500">暂无成员</div>}
               {p.members.map((m) => (
-                <div key={m.userId} className="flex items-center justify-between text-xs border-b border-slate-100 pb-2 last:border-0">
+                <div key={m.userId} className="flex items-center justify-between text-xs border-b border-ink-100 pb-2 last:border-0">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-slate-200 grid place-items-center text-[10px] text-slate-600">{m.name.slice(0, 1)}</div>
+                    <div className="w-6 h-6 rounded-full bg-ink-200 grid place-items-center text-[10px] text-ink-600">{m.name.slice(0, 1)}</div>
                     <span>{m.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function TeamAssignments() {
             }} />
           </Field>
           <Field label="项目角色"><Select opts={ROLE_OPTIONS} className="w-full" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as RoleName })} /></Field>
-          <div className="text-[11px] text-slate-500">项目角色独立于团队角色，仅作用于当前项目空间。</div>
+          <div className="text-[11px] text-ink-500">项目角色独立于团队角色，仅作用于当前项目空间。</div>
         </div>
       </Modal>
     </>

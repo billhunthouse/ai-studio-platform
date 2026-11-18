@@ -43,10 +43,10 @@ export function AppRuns() {
       >
         {detail && (
           <div className="space-y-2 text-xs">
-            <div className="text-slate-500">执行步骤</div>
+            <div className="text-ink-500">执行步骤</div>
             {["启动 App", "图像识别：我的 Tab", "点击：我的", "断言：会员昵称可见"].map((s, i) => (
-              <div key={s} className="flex items-center gap-2 border border-slate-100 rounded px-2 py-2">
-                <span className="text-slate-500">{i + 1}</span>
+              <div key={s} className="flex items-center gap-2 border border-ink-100 rounded px-2 py-2">
+                <span className="text-ink-500">{i + 1}</span>
                 <span>{s}</span>
                 <Tag t={detail.result === "成功" ? "成功" : i === 3 ? "失败" : "成功"} />
               </div>

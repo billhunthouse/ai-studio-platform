@@ -55,7 +55,7 @@ export function ApiDebug() {
         </div>
         <div className="flex gap-4 mt-3 border-b">
           {TABS.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={cx("pb-2 text-xs border-b-2", tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500")}>{t}</button>
+            <button key={t} onClick={() => setTab(t)} className={cx("pb-2 text-xs border-b-2", tab === t ? "border-brand-500 text-brand-600" : "border-transparent text-ink-500")}>{t}</button>
           ))}
         </div>
         {tab === "断言" ? (

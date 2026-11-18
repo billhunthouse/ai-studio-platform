@@ -1,0 +1,453 @@
+{
+  "project": "AI 测试开发平台",
+  "createdAt": "2026-11-16",
+  "gitCommit": "83aa7b9",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "baseUrl": "http://127.0.0.1:8443",
+  "state": "当前实现，未做视觉美化",
+  "screens": [
+    {
+      "id": "S01",
+      "file": "screens/01-login.png",
+      "group": "认证",
+      "title": "登录",
+      "route": "/login",
+      "purpose": "邀请制登录入口，邮箱 + 密码",
+      "state": "default",
+      "notes": "需补拍错误提示、禁用态"
+    },
+    {
+      "id": "S02",
+      "file": "screens/02-dashboard.png",
+      "group": "全局层",
+      "title": "工作台",
+      "route": "/dashboard",
+      "purpose": "全局指标、待办、告警、近期动态",
+      "state": "default",
+      "notes": "图表区为当前实现状态"
+    },
+    {
+      "id": "S03",
+      "file": "screens/03-project-overview.png",
+      "group": "项目层 · 核心流程",
+      "title": "项目概览",
+      "route": "/project/:pid/overview",
+      "purpose": "项目健康度、用例与执行统计",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S04",
+      "file": "screens/04-requirements-list.png",
+      "group": "项目层 · 核心流程",
+      "title": "需求列表",
+      "route": "/project/:pid/requirements",
+      "purpose": "按业务模块分组的需求树、筛选、上传",
+      "state": "default",
+      "notes": "当前项目数据 77 条"
+    },
+    {
+      "id": "S05",
+      "file": "screens/05-requirement-detail.png",
+      "group": "项目层 · 核心流程",
+      "title": "需求详情",
+      "route": "/project/:pid/requirements/:rid",
+      "purpose": "需求信息 + AI 设计生成/原型/接口",
+      "state": "default",
+      "notes": "右侧工作区为空态"
+    },
+    {
+      "id": "S06",
+      "file": "screens/06-testcases-list.png",
+      "group": "项目层 · 核心流程",
+      "title": "用例列表",
+      "route": "/project/:pid/testcases",
+      "purpose": "测试用例表格、导入导出",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S07",
+      "file": "screens/07-testcases-generate.png",
+      "group": "项目层 · 核心流程",
+      "title": "AI 生成用例",
+      "route": "/project/:pid/testcases/generate",
+      "purpose": "配置生成输入、生成结果",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S08",
+      "file": "screens/08-testcases-review.png",
+      "group": "项目层 · 核心流程",
+      "title": "用例评审",
+      "route": "/project/:pid/testcases/review",
+      "purpose": "可编辑评审、通过保存",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S09",
+      "file": "screens/09-api-manage.png",
+      "group": "项目层 · 自动化",
+      "title": "接口管理",
+      "route": "/project/:pid/api",
+      "purpose": "接口目录 + 接口表格",
+      "state": "empty",
+      "notes": "当前为空状态，需要补拍有数据状态"
+    },
+    {
+      "id": "S10",
+      "file": "screens/10-api-debug.png",
+      "group": "项目层 · 自动化",
+      "title": "调试面板",
+      "route": "/project/:pid/api/debug",
+      "purpose": "请求编辑、响应与断言",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S11",
+      "file": "screens/11-api-suites.png",
+      "group": "项目层 · 自动化",
+      "title": "套件与定时任务",
+      "route": "/project/:pid/api/suites",
+      "purpose": "套件、定时计划与执行",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S12",
+      "file": "screens/12-api-reports.png",
+      "group": "项目层 · 自动化",
+      "title": "执行报告",
+      "route": "/project/:pid/api/reports",
+      "purpose": "报告列表与结果",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S13",
+      "file": "screens/13-webui-elements.png",
+      "group": "项目层 · 自动化",
+      "title": "元素库",
+      "route": "/project/:pid/webui",
+      "purpose": "WebUI 元素与定位器",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S14",
+      "file": "screens/14-webui-scripts.png",
+      "group": "项目层 · 自动化",
+      "title": "用例脚本",
+      "route": "/project/:pid/webui/scripts",
+      "purpose": "脚本列表与编辑器入口",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S15",
+      "file": "screens/15-webui-recorder.png",
+      "group": "项目层 · 自动化",
+      "title": "录制回放",
+      "route": "/project/:pid/webui/recorder",
+      "purpose": "录制器与步骤回放",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S16",
+      "file": "screens/16-webui-runs.png",
+      "group": "项目层 · 自动化",
+      "title": "执行记录",
+      "route": "/project/:pid/webui/runs",
+      "purpose": "WebUI 运行记录",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S17",
+      "file": "screens/17-app-devices.png",
+      "group": "项目层 · 自动化",
+      "title": "设备管理",
+      "route": "/project/:pid/app",
+      "purpose": "App 设备与状态",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S18",
+      "file": "screens/18-app-flow.png",
+      "group": "项目层 · 自动化",
+      "title": "UI Flow 编排",
+      "route": "/project/:pid/app/flow",
+      "purpose": "节点画布与配置",
+      "state": "default",
+      "notes": "画布空态"
+    },
+    {
+      "id": "S19",
+      "file": "screens/19-app-runs.png",
+      "group": "项目层 · 自动化",
+      "title": "执行记录",
+      "route": "/project/:pid/app/runs",
+      "purpose": "App 运行记录",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S20",
+      "file": "screens/20-ai-chat.png",
+      "group": "项目层 · AI 与知识",
+      "title": "对话助手",
+      "route": "/project/:pid/ai/chat",
+      "purpose": "知识库问答、引用与工具调用",
+      "state": "default",
+      "notes": "已有会话数据"
+    },
+    {
+      "id": "S21",
+      "file": "screens/21-ai-workflow.png",
+      "group": "项目层 · AI 与知识",
+      "title": "工作流编排器",
+      "route": "/project/:pid/ai/workflow",
+      "purpose": "节点库、画布、节点配置",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S22",
+      "file": "screens/22-knowledge-list.png",
+      "group": "项目层 · AI 与知识",
+      "title": "知识库列表",
+      "route": "/project/:pid/knowledge",
+      "purpose": "知识库与文档数量",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S23",
+      "file": "screens/23-knowledge-documents.png",
+      "group": "项目层 · AI 与知识",
+      "title": "文档管理",
+      "route": "/project/:pid/knowledge/documents",
+      "purpose": "文档上传、解析、切片",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S24",
+      "file": "screens/24-knowledge-recall.png",
+      "group": "项目层 · AI 与知识",
+      "title": "召回测试",
+      "route": "/project/:pid/knowledge/recall",
+      "purpose": "检索查询与召回结果",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S25",
+      "file": "screens/25-knowledge-learning.png",
+      "group": "项目层 · AI 与知识",
+      "title": "学习中心",
+      "route": "/project/:pid/knowledge/learning",
+      "purpose": "课程内容与学习进度",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S26",
+      "file": "screens/26-task-list.png",
+      "group": "项目层 · AI 与知识",
+      "title": "任务列表",
+      "route": "/project/:pid/tasks",
+      "purpose": "后台任务、进度与重试",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S27",
+      "file": "screens/27-agent-eval.png",
+      "group": "项目层 · AI 与知识",
+      "title": "Agent 评测",
+      "route": "/project/:pid/tasks/agent-eval",
+      "purpose": "评测集与结果",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S28",
+      "file": "screens/28-version-compare.png",
+      "group": "项目层 · AI 与知识",
+      "title": "版本对比",
+      "route": "/project/:pid/tasks/compare",
+      "purpose": "版本差异与变更",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S29",
+      "file": "screens/29-skills-list.png",
+      "group": "全局层",
+      "title": "技能市场",
+      "route": "/skills/list",
+      "purpose": "技能列表、导入、编辑",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S30",
+      "file": "screens/30-mcp-servers.png",
+      "group": "全局层",
+      "title": "MCP 服务",
+      "route": "/mcp",
+      "purpose": "MCP 服务登记、连接测试、工具列表",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S31",
+      "file": "screens/31-team-members.png",
+      "group": "全局层",
+      "title": "团队成员",
+      "route": "/team/members",
+      "purpose": "成员列表、邀请、角色",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S32",
+      "file": "screens/32-team-roles.png",
+      "group": "全局层",
+      "title": "角色权限",
+      "route": "/team/roles",
+      "purpose": "角色权限矩阵",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S33",
+      "file": "screens/33-team-assignments.png",
+      "group": "全局层",
+      "title": "项目分配",
+      "route": "/team/assignments",
+      "purpose": "成员与项目关系",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S34",
+      "file": "screens/34-profile-info.png",
+      "group": "全局层",
+      "title": "个人信息",
+      "route": "/profile/info",
+      "purpose": "个人资料与偏好",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S35",
+      "file": "screens/35-profile-security.png",
+      "group": "全局层",
+      "title": "安全设置",
+      "route": "/profile/security",
+      "purpose": "密码、会话与安全",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S36",
+      "file": "screens/36-profile-assets.png",
+      "group": "全局层",
+      "title": "我的资产",
+      "route": "/profile/assets",
+      "purpose": "产物与资产",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S37",
+      "file": "screens/37-profile-keys.png",
+      "group": "全局层",
+      "title": "API Key",
+      "route": "/profile/keys",
+      "purpose": "个人密钥管理",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S38",
+      "file": "screens/38-admin-providers.png",
+      "group": "管理员层",
+      "title": "模型供应商",
+      "route": "/admin/models/providers",
+      "purpose": "模型供应商与密钥",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S39",
+      "file": "screens/39-admin-routing.png",
+      "group": "管理员层",
+      "title": "模型路由规则",
+      "route": "/admin/models/routing",
+      "purpose": "模型路由与规则",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S40",
+      "file": "screens/40-admin-connection-test.png",
+      "group": "管理员层",
+      "title": "连接测试",
+      "route": "/admin/models/test",
+      "purpose": "模型连通性测试",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S41",
+      "file": "screens/41-admin-users.png",
+      "group": "管理员层",
+      "title": "用户管理",
+      "route": "/admin/system/users",
+      "purpose": "平台用户与角色",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S42",
+      "file": "screens/42-admin-health.png",
+      "group": "管理员层",
+      "title": "环境检测",
+      "route": "/admin/system/health",
+      "purpose": "服务与依赖健康",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S43",
+      "file": "screens/43-admin-notifications.png",
+      "group": "管理员层",
+      "title": "通知配置",
+      "route": "/admin/system/notifications",
+      "purpose": "通知渠道与规则",
+      "state": "default",
+      "notes": ""
+    },
+    {
+      "id": "S44",
+      "file": "screens/44-admin-audit.png",
+      "group": "管理员层",
+      "title": "审计日志",
+      "route": "/admin/audit/logs",
+      "purpose": "操作审计与筛选",
+      "state": "default",
+      "notes": ""
+    }
+  ]
+}

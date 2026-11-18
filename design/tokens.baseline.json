@@ -1,0 +1,377 @@
+{
+  "$schema": "https://design-tokens.org/schema.json",
+  "meta": {
+    "name": "AI Test Platform — Baseline Tokens",
+    "status": "current-code",
+    "version": "1.1.0",
+    "source": "src/index.css + Tailwind utility usage + docs/设计规范.md",
+    "note": "2026-11-17 专业化改造后的当前代码 Token；与 src/index.css 的 @theme 对齐。"
+  },
+  "color": {
+    "brand": {
+      "primary": {
+        "$type": "color",
+        "$value": "#2D5BFF",
+        "$description": "blue-600；主按钮、选中态、链接"
+      },
+      "primaryHover": {
+        "$type": "color",
+        "$value": "#1F46E0",
+        "$description": "blue-500"
+      },
+      "primarySubtle": {
+        "$type": "color",
+        "$value": "#EEF3FF",
+        "$description": "blue-50；选中背景"
+      },
+      "primaryBorder": {
+        "$type": "color",
+        "$value": "#C7D7FF",
+        "$description": "blue-200"
+      },
+      "gradientFrom": {
+        "$type": "color",
+        "$value": "#2563EB"
+      },
+      "gradientTo": {
+        "$type": "color",
+        "$value": "#4F46E5"
+      }
+    },
+    "surface": {
+      "canvas": {
+        "$type": "color",
+        "$value": "#F5F7FB",
+        "$description": "slate-100；页面背景"
+      },
+      "default": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      },
+      "subtle": {
+        "$type": "color",
+        "$value": "#F8FAFC",
+        "$description": "slate-50；表头/弱背景"
+      },
+      "nav": {
+        "$type": "color",
+        "$value": "#0B1220",
+        "$description": "slate-900；顶栏"
+      },
+      "overlay": {
+        "$type": "color",
+        "$value": "#0F172A66",
+        "$description": "slate-900 / 40%"
+      }
+    },
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$value": "#0F172A",
+        "$description": "slate-800"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "#475569",
+        "$description": "slate-600"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "#64748B",
+        "$description": "slate-500；不再使用 slate-400"
+      },
+      "inverse": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      },
+      "nav": {
+        "$type": "color",
+        "$value": "#CBD5E1",
+        "$description": "slate-300"
+      }
+    },
+    "border": {
+      "default": {
+        "$type": "color",
+        "$value": "#E2E8F0",
+        "$description": "slate-200"
+      },
+      "strong": {
+        "$type": "color",
+        "$value": "#CBD5E1",
+        "$description": "slate-300"
+      },
+      "divider": {
+        "$type": "color",
+        "$value": "#F1F5F9",
+        "$description": "slate-100"
+      }
+    },
+    "status": {
+      "successFg": {
+        "$type": "color",
+        "$value": "#047857"
+      },
+      "successBg": {
+        "$type": "color",
+        "$value": "#ECFDF5"
+      },
+      "successBorder": {
+        "$type": "color",
+        "$value": "#A7F3D0"
+      },
+      "dangerFg": {
+        "$type": "color",
+        "$value": "#BE123C"
+      },
+      "dangerBg": {
+        "$type": "color",
+        "$value": "#FFF1F2"
+      },
+      "dangerBorder": {
+        "$type": "color",
+        "$value": "#FECDD3"
+      },
+      "warningFg": {
+        "$type": "color",
+        "$value": "#B45309"
+      },
+      "warningBg": {
+        "$type": "color",
+        "$value": "#FFFBEB"
+      },
+      "warningBorder": {
+        "$type": "color",
+        "$value": "#FDE68A"
+      },
+      "infoFg": {
+        "$type": "color",
+        "$value": "#2563EB"
+      },
+      "infoBg": {
+        "$type": "color",
+        "$value": "#EFF6FF"
+      },
+      "infoBorder": {
+        "$type": "color",
+        "$value": "#BFDBFE"
+      },
+      "neutralFg": {
+        "$type": "color",
+        "$value": "#475569"
+      },
+      "neutralBg": {
+        "$type": "color",
+        "$value": "#F1F5F9"
+      },
+      "neutralBorder": {
+        "$type": "color",
+        "$value": "#E2E8F0"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": "Inter, PingFang SC, Microsoft YaHei, sans-serif"
+      },
+      "mono": {
+        "$type": "fontFamily",
+        "$value": "SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+      }
+    },
+    "fontSize": {
+      "micro": {
+        "$type": "dimension",
+        "$value": "11px"
+      },
+      "caption": {
+        "$type": "dimension",
+        "$value": "12px"
+      },
+      "body": {
+        "$type": "dimension",
+        "$value": "14px"
+      },
+      "bodyLarge": {
+        "$type": "dimension",
+        "$value": "14px"
+      },
+      "title": {
+        "$type": "dimension",
+        "$value": "15px"
+      },
+      "pageTitle": {
+        "$type": "dimension",
+        "$value": "26px"
+      },
+      "metric": {
+        "$type": "dimension",
+        "$value": "28px"
+      }
+    },
+    "fontWeight": {
+      "regular": {
+        "$type": "fontWeight",
+        "$value": 400
+      },
+      "medium": {
+        "$type": "fontWeight",
+        "$value": 500
+      },
+      "semibold": {
+        "$type": "fontWeight",
+        "$value": 600
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "$type": "number",
+        "$value": 1.25
+      },
+      "normal": {
+        "$type": "number",
+        "$value": 1.5
+      },
+      "relaxed": {
+        "$type": "number",
+        "$value": 1.75
+      }
+    }
+  },
+  "dimension": {
+    "space": {
+      "0": {
+        "$type": "dimension",
+        "$value": "0px"
+      },
+      "1": {
+        "$type": "dimension",
+        "$value": "4px"
+      },
+      "2": {
+        "$type": "dimension",
+        "$value": "8px"
+      },
+      "3": {
+        "$type": "dimension",
+        "$value": "12px"
+      },
+      "4": {
+        "$type": "dimension",
+        "$value": "16px"
+      },
+      "5": {
+        "$type": "dimension",
+        "$value": "20px"
+      },
+      "6": {
+        "$type": "dimension",
+        "$value": "24px"
+      },
+      "8": {
+        "$type": "dimension",
+        "$value": "32px"
+      },
+      "10": {
+        "$type": "dimension",
+        "$value": "40px"
+      },
+      "12": {
+        "$type": "dimension",
+        "$value": "48px"
+      }
+    },
+    "control": {
+      "heightSm": {
+        "$type": "dimension",
+        "$value": "32px"
+      },
+      "heightMd": {
+        "$type": "dimension",
+        "$value": "36px"
+      },
+      "heightLg": {
+        "$type": "dimension",
+        "$value": "36px"
+      }
+    },
+    "layout": {
+      "topbar": {
+        "$type": "dimension",
+        "$value": "56px"
+      },
+      "sidebar": {
+        "$type": "dimension",
+        "$value": "232px"
+      },
+      "contentPadding": {
+        "$type": "dimension",
+        "$value": "24px"
+      },
+      "cardHeader": {
+        "$type": "dimension",
+        "$value": "48px"
+      },
+      "tableRow": {
+        "$type": "dimension",
+        "$value": "48px"
+      }
+    }
+  },
+  "radius": {
+    "sm": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "6px"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "full": {
+      "$type": "dimension",
+      "$value": "9999px"
+    }
+  },
+  "shadow": {
+    "card": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0F172A0A",
+        "offsetX": "0px",
+        "offsetY": "1px",
+        "blur": "2px",
+        "spread": "0px"
+      }
+    },
+    "popover": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0F172A1F",
+        "offsetX": "0px",
+        "offsetY": "12px",
+        "blur": "32px",
+        "spread": "0px"
+      }
+    },
+    "modal": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0F172A2E",
+        "offsetX": "0px",
+        "offsetY": "24px",
+        "blur": "64px",
+        "spread": "0px"
+      }
+    }
+  }
+}

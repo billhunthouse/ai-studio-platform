@@ -40,12 +40,12 @@ export function ElementLibrary() {
       <div className="grid grid-cols-4 gap-4">
         <Card title="页面">
           {data.pages.map((p) => (
-            <button key={p.id} onClick={() => setPage(p.name)} className={`w-full text-left py-2 text-xs border-b last:border-0 ${page === p.name ? "text-blue-600 font-medium" : "hover:text-blue-600"}`}>
+            <button key={p.id} onClick={() => setPage(p.name)} className={`w-full text-left py-2 text-xs border-b last:border-0 ${page === p.name ? "text-brand-600 font-medium" : "hover:text-brand-600"}`}>
               <div>{p.name}</div>
-              <div className="text-[11px] text-slate-500 font-mono">{p.url}</div>
+              <div className="text-[11px] text-ink-500 font-mono">{p.url}</div>
             </button>
           ))}
-          <button onClick={() => setPage("全部页面")} className={`w-full text-left py-2 text-xs ${page === "全部页面" ? "text-blue-600 font-medium" : "text-slate-500"}`}>全部页面</button>
+          <button onClick={() => setPage("全部页面")} className={`w-full text-left py-2 text-xs ${page === "全部页面" ? "text-brand-600 font-medium" : "text-ink-500"}`}>全部页面</button>
         </Card>
 
         <Card title="元素库" className="col-span-3" extra={<Btn onClick={() => { setForm({ ...form, pageId: data.pages[0]?.id ?? "" }); setOpen(true); }}>+ 新增元素</Btn>}>

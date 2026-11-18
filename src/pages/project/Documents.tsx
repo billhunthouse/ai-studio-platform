@@ -85,11 +85,11 @@ export function Documents() {
       <Modal open={open} title="上传文档" onClose={() => setOpen(false)} footer={<><Btn v="ghost" onClick={() => setOpen(false)}>取消</Btn><Btn onClick={upload}>上传</Btn></>}>
         <div className="space-y-3">
           <Field label="目标知识库"><Select opts={data.kbs.map((k) => k.name)} className="w-full" value={kbName(uploadKb)} onChange={(e) => setUploadKb(data.kbs.find((k) => k.name === e.target.value)?.id ?? "")} /></Field>
-          <div className="border border-dashed border-slate-300 rounded-lg p-6 text-center text-xs text-slate-500">
+          <div className="border border-dashed border-ink-300 rounded-lg p-6 text-center text-xs text-ink-500">
             <div className="mb-2">支持 PDF / Word / Markdown / TXT</div>
             <Btn v="ghost" onClick={() => fileRef.current?.click()}>选择文件</Btn>
             <input ref={fileRef} type="file" accept=".pdf,.docx,.md,.markdown,.txt" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            {file && <div className="mt-3 text-slate-700">已选择：{file.name}</div>}
+            {file && <div className="mt-3 text-ink-700">已选择：{file.name}</div>}
           </div>
         </div>
       </Modal>
@@ -98,8 +98,8 @@ export function Documents() {
         <div className="space-y-3">
           {chunks.map((c) => (
             <div key={c.index} className="border rounded-md p-3 text-xs">
-              <div className="flex justify-between mb-1"><span className="text-slate-500">段落 {c.index}</span><Tag t="已嵌入" c="green" /></div>
-              <div className="text-slate-700 leading-relaxed">{c.content}</div>
+              <div className="flex justify-between mb-1"><span className="text-ink-500">段落 {c.index}</span><Tag t="已嵌入" c="green" /></div>
+              <div className="text-ink-700 leading-relaxed">{c.content}</div>
             </div>
           ))}
         </div>

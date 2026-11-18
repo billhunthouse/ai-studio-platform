@@ -78,7 +78,7 @@ export function CaseReview() {
     }
   };
 
-  if (loading) return <div className="h-40 grid place-items-center text-xs text-slate-500">加载中…</div>;
+  if (loading) return <div className="h-40 grid place-items-center text-xs text-ink-500">加载中…</div>;
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -90,7 +90,7 @@ export function CaseReview() {
         </div>
         {data.reviews.length === 0 && <Empty text="暂无待评审用例" />}
         {data.reviews.map((review, index) => (
-          <button key={review.caseId} onClick={() => setSelected(index)} className={cx("w-full flex justify-between items-center px-2 py-2 rounded text-xs", selected === index && "bg-blue-50")}>
+          <button key={review.caseId} onClick={() => setSelected(index)} className={cx("w-full flex justify-between items-center px-2 py-2 rounded text-xs", selected === index && "bg-brand-50")}>
             <span className="truncate pr-2">{review.title}</span><Tag t={review.status} />
           </button>
         ))}
@@ -120,11 +120,11 @@ export function CaseReview() {
 
             <div className="mt-4 border-t pt-3">
               <div className="text-xs font-medium mb-2">评审记录</div>
-              {item.comments.length === 0 && <div className="text-xs text-slate-500">暂无记录</div>}
+              {item.comments.length === 0 && <div className="text-xs text-ink-500">暂无记录</div>}
               {item.comments.map((entry) => (
-                <div key={entry.id} className="text-xs text-slate-500 py-1.5 border-b border-slate-100 last:border-0">
-                  <span className="text-slate-700">{entry.author || "系统"}</span> · {entry.action} · {entry.content}
-                  <span className="ml-2 text-slate-500">{entry.time}</span>
+                <div key={entry.id} className="text-xs text-ink-500 py-1.5 border-b border-ink-100 last:border-0">
+                  <span className="text-ink-700">{entry.author || "系统"}</span> · {entry.action} · {entry.content}
+                  <span className="ml-2 text-ink-500">{entry.time}</span>
                 </div>
               ))}
             </div>

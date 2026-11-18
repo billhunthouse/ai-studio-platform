@@ -32,7 +32,7 @@ export function ProfileAssets() {
     <div className="space-y-4">
       <div className="grid grid-cols-4 gap-4">
         {[["产物总数", "3"], ["原型 JSON", "1"], ["接口设计", "1"], ["测试报告", "1"]].map(([l, v]) => (
-          <Card key={l}><div className="text-xs text-slate-500">{l}</div><div className="text-2xl font-semibold mt-1">{v}</div></Card>
+          <Card key={l}><div className="text-xs text-ink-500">{l}</div><div className="text-2xl font-semibold mt-1">{v}</div></Card>
         ))}
       </div>
       <Card>

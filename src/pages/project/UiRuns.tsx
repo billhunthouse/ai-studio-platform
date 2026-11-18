@@ -39,21 +39,21 @@ export function UiRuns() {
         {detail && (
           <div className="space-y-4 text-xs">
             <div>
-              <div className="text-slate-500 mb-2">步骤截图</div>
+              <div className="text-ink-500 mb-2">步骤截图</div>
               <div className="grid grid-cols-2 gap-2">
                 {Array.from({ length: detail.shots }).map((_, i) => (
-                  <div key={i} className="aspect-video bg-slate-100 border border-slate-200 rounded grid place-items-center text-[11px] text-slate-500">
+                  <div key={i} className="aspect-video bg-ink-100 border border-line rounded grid place-items-center text-[11px] text-ink-500">
                     步骤 {i + 1} 截图
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <div className="text-slate-500 mb-2">执行视频</div>
+              <div className="text-ink-500 mb-2">执行视频</div>
               {detail.video ? (
-                <div className="aspect-video bg-slate-900 rounded grid place-items-center text-[11px] text-slate-300">录制视频 · {detail.duration}</div>
+                <div className="aspect-video bg-slate-900 rounded grid place-items-center text-[11px] text-ink-300">录制视频 · {detail.duration}</div>
               ) : (
-                <div className="text-slate-500">本次执行未录制视频</div>
+                <div className="text-ink-500">本次执行未录制视频</div>
               )}
             </div>
           </div>

@@ -133,7 +133,7 @@ export function McpServers() {
           <Field label="环境变量" hint={editing ? "留空表示不修改；每行 KEY=VALUE" : "每行 KEY=VALUE"}>
             <Textarea className="w-full h-28 font-mono" value={form.env} onChange={(e) => setForm({ ...form, env: e.target.value })} placeholder={"API_KEY=...\nBASE_URL=..."} />
           </Field>
-          <div className="text-[11px] text-slate-500">连接测试会以当前配置启动子进程并读取工具列表，超时 20 秒。该操作仅管理员可用。</div>
+          <div className="text-[11px] text-ink-500">连接测试会以当前配置启动子进程并读取工具列表，超时 20 秒。该操作仅管理员可用。</div>
         </div>
       </Modal>
 
@@ -151,11 +151,11 @@ export function McpServers() {
         {detail && (
           <div className="space-y-2 text-xs">
             {detail.lastError && <div className="text-rose-600 break-all">{detail.lastError}</div>}
-            {detail.tools.length === 0 && <div className="text-slate-500">尚未发现工具，请先执行连接测试。</div>}
+            {detail.tools.length === 0 && <div className="text-ink-500">尚未发现工具，请先执行连接测试。</div>}
             {detail.tools.map((tool) => (
-              <div key={tool.name} className="border border-slate-100 rounded p-2">
-                <div className="font-mono text-slate-800">{tool.name}</div>
-                <div className="text-slate-500 mt-1">{tool.description || "无描述"}</div>
+              <div key={tool.name} className="border border-ink-100 rounded p-2">
+                <div className="font-mono text-ink-800">{tool.name}</div>
+                <div className="text-ink-500 mt-1">{tool.description || "无描述"}</div>
               </div>
             ))}
           </div>

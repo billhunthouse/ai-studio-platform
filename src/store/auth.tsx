@@ -66,8 +66,8 @@ export function useAuth(): AuthStore {
 
 function LoadingScreen() {
   return (
-    <div className="h-screen grid place-items-center bg-slate-100">
-      <Card className="w-64 text-center"><div className="h-16 grid place-items-center text-xs text-slate-500">正在验证登录状态…</div></Card>
+    <div className="h-screen grid place-items-center bg-ink-100">
+      <Card className="w-64 text-center"><div className="h-16 grid place-items-center text-xs text-ink-500">正在验证登录状态…</div></Card>
     </div>
   );
 }

@@ -63,7 +63,7 @@ export function Users() {
         <div className="space-y-3">
           <Field label="邮箱"><Input className="w-full" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoFocus placeholder="name@corp.com" /></Field>
           <Field label="角色"><Select opts={["管理员", "开发者", "评审者", "只读"]} className="w-full" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} /></Field>
-          <div className="text-[11px] text-slate-500">邀请链接 7 天内有效，成员激活后出现在用户列表。</div>
+          <div className="text-[11px] text-ink-500">邀请链接 7 天内有效，成员激活后出现在用户列表。</div>
         </div>
       </Modal>
 

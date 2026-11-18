@@ -47,7 +47,7 @@ export function ProfileKeys() {
   return (
     <>
       <Card extra={<Btn onClick={() => setOpen(true)}>+ 新建 API Key</Btn>} title="API Key 管理">
-        <div className="text-[11px] text-slate-500 mb-3">API Key 用于 CI 流水线与外部系统调用，密钥仅在创建时展示一次。</div>
+        <div className="text-[11px] text-ink-500 mb-3">API Key 用于 CI 流水线与外部系统调用，密钥仅在创建时展示一次。</div>
         <Table
           cols={["名称", "Key 前缀", "创建时间", "最近使用", "状态"]}
           rows={data.map((k) => [k.name, <code key="p" className="text-[11px]">{k.prefix}••••••••</code>, k.createdAt, k.lastUsed, k.status])}
@@ -65,7 +65,7 @@ export function ProfileKeys() {
       </Modal>
 
       <Modal open={!!secret} title="API Key 已创建" onClose={() => setSecret(null)} footer={<Btn onClick={() => setSecret(null)}>我已保存</Btn>}>
-        <div className="text-xs text-slate-600 mb-2">请立即复制并妥善保管，关闭后将无法再次查看完整密钥。</div>
+        <div className="text-xs text-ink-600 mb-2">请立即复制并妥善保管，关闭后将无法再次查看完整密钥。</div>
         <div className="flex gap-2">
           <Input readOnly value={secret ?? ""} className="flex-1 font-mono" />
           <Btn v="ghost" onClick={() => secret && copy(secret)}>复制</Btn>

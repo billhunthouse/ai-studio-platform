@@ -49,16 +49,16 @@ export function ApiReports() {
         {detail && (
           <div className="space-y-4">
             <div>
-              <div className="text-xs text-slate-500 mb-1">通过率</div>
+              <div className="text-xs text-ink-500 mb-1">通过率</div>
               <Progress value={Math.round((detail.passed / detail.total) * 100)} />
-              <div className="text-[11px] text-slate-500 mt-1">{detail.passed} 通过 · {detail.total - detail.passed} 失败</div>
+              <div className="text-[11px] text-ink-500 mt-1">{detail.passed} 通过 · {detail.total - detail.passed} 失败</div>
             </div>
             <div>
               <div className="text-xs font-medium mb-2">失败明细</div>
-              {detail.failures.length === 0 && <div className="text-xs text-slate-500">本次执行无失败用例</div>}
+              {detail.failures.length === 0 && <div className="text-xs text-ink-500">本次执行无失败用例</div>}
               {detail.failures.map((f) => (
                 <div key={f.case} className="border border-rose-100 bg-rose-50/50 rounded p-2 mb-2 text-xs">
-                  <div className="text-slate-800 font-medium">{f.case}</div>
+                  <div className="text-ink-800 font-medium">{f.case}</div>
                   <div className="text-rose-600 mt-1">{f.error}</div>
                 </div>
               ))}

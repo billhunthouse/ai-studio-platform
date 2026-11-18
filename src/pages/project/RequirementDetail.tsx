@@ -8,7 +8,7 @@ import { downloadBlob, downloadText } from "@/lib/download";
 import { prototypeToSvg } from "@/lib/prototypeSvg";
 import { MODELS } from "@/config/constants";
 import { cx } from "@/lib/cx";
-import { Btn, Card, Drawer, Field, Input, Modal, Progress, Select, Tag, Textarea } from "@/components/ui";
+import { Btn, Card, Drawer, Field, Icon, Input, Modal, Progress, Select, Tag, Textarea } from "@/components/ui";
 import { MonacoEditor, PrototypeEditor, PrototypeRenderer, RequirementSplit, VersionDiff } from "@/components/business";
 
 const STAGES = ["检索知识库", "需求拆解", "结构生成", "校验", "完成"];
@@ -35,7 +35,14 @@ export function RequirementDetail() {
     description: "",
   });
 
-  if (!req) return <div className="h-40 grid place-items-center text-xs text-slate-500">加载中…</div>;
+  if (!req) {
+    return (
+      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="h-96 animate-pulse rounded-card border border-line bg-white" />
+        <div className="h-96 animate-pulse rounded-card border border-line bg-white" />
+      </div>
+    );
+  }
 
   const p = progress[sub] ?? -1;
   const latest = (kind: GenerationResult["kind"]) => req.generations.find((g) => g.kind === kind);
@@ -164,98 +171,172 @@ export function RequirementDetail() {
   const diffPair = versions.filter((v) => v.kind === diffKind).slice(-2);
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <Card title="需求信息" extra={<Btn v="ghost" onClick={openReqEdit}>编辑</Btn>}>
-        <dl className="text-xs space-y-1.5">
-          {[["编号", req.id], ["名称", req.title], ["优先级", req.priority], ["负责人", req.owner || "-"], ["版本", req.version], ["状态", req.status]].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-3"><dt className="text-slate-500">{label}</dt><dd className="text-right">{value}</dd></div>
-          ))}
+    <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <Card className="h-fit" title="需求信息" extra={<Btn v="secondary" size="sm" onClick={openReqEdit}>编辑</Btn>}>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] text-ink-400">{req.id}</span>
+          <Tag t={req.status} />
+        </div>
+        <h2 className="mt-2 text-[18px] font-semibold leading-7 tracking-[-0.02em] text-ink-900">{req.title}</h2>
+        <p className="mt-2 line-clamp-4 text-[12px] leading-5 text-ink-500">{req.description || "暂无描述"}</p>
+
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-ink-100 pt-4">
+          <div>
+            <dt className="text-[11px] text-ink-500">优先级</dt>
+            <dd className="mt-1"><Tag t={req.priority} /></dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-ink-500">状态</dt>
+            <dd className="mt-1"><Tag t={req.status} /></dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-ink-500">负责人</dt>
+            <dd className="mt-1 text-[12px] font-medium text-ink-800">{req.owner || "-"}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-ink-500">版本</dt>
+            <dd className="mt-1 font-mono text-[12px] text-ink-800">{req.version}</dd>
+          </div>
         </dl>
-        <p className="text-xs text-slate-600 mt-3 leading-relaxed border-t pt-3 max-h-28 overflow-y-auto">{req.description}</p>
+
         {req.parentId && (
-          <button onClick={() => navigate(`/project/${projectId}/requirements/${req.parentId}`)} className="mt-2 text-[11px] text-blue-600">← 返回主需求</button>
+          <button onClick={() => navigate(`/project/${projectId}/requirements/${req.parentId}`)} className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700">
+            ← 返回主需求
+          </button>
         )}
+
         {req.files && req.files.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
-            <div className="text-[11px] text-slate-500 mb-1">需求文档（{req.files.length}）</div>
-            {req.files.map((file) => (
-              <div key={file.id} className="flex items-center justify-between gap-2 py-1 text-[11px]">
-                <span className="truncate">{file.filename}</span>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => previewFile(file.id)} className="text-blue-600">预览</button>
-                  <button onClick={() => downloadFile(file.id, file.filename)} className="text-blue-600">下载</button>
+          <div className="mt-4 border-t border-ink-100 pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-medium text-ink-500">需求文档</div>
+              <span className="text-[10px] text-ink-400">{req.files.length} 个文件</span>
+            </div>
+            <div className="space-y-1">
+              {req.files.map((file) => (
+                <div key={file.id} className="group flex items-center gap-2 rounded-lg px-2 py-2 text-[11px] hover:bg-ink-50">
+                  <Icon name="folder" size={14} className="shrink-0 text-ink-400" />
+                  <span className="min-w-0 flex-1 truncate text-ink-600" title={file.filename}>{file.filename}</span>
+                  <button onClick={() => previewFile(file.id)} className="shrink-0 text-brand-600 hover:text-brand-700">预览</button>
+                  <button onClick={() => downloadFile(file.id, file.filename)} className="shrink-0 text-ink-500 hover:text-ink-800">下载</button>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
+
         {req.points.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
-            <div className="text-[11px] text-slate-500 mb-1">AI 需求拆解</div>
-            {req.points.map((point) => <div key={point} className="text-xs py-0.5">· {point}</div>)}
+          <div className="mt-4 border-t border-ink-100 pt-4">
+            <div className="mb-2 text-[11px] font-medium text-ink-500">AI 需求拆解</div>
+            <div className="space-y-1.5">
+              {req.points.map((point) => (
+                <div key={point} className="flex gap-2 text-[11px] leading-5 text-ink-600">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-400" />
+                  <span>{point}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-        <div className="mt-3 pt-3 border-t"><RequirementSplit requirement={req} onUpdated={setReq} /></div>
+
+        <div className="mt-4 border-t border-ink-100 pt-4"><RequirementSplit requirement={req} onUpdated={setReq} /></div>
+
         {children.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
-            <div className="text-[11px] text-slate-500 mb-1">子需求（{children.length}）</div>
-            {children.map((child) => (
-              <button key={child.id} onClick={() => navigate(`/project/${projectId}/requirements/${child.id}`)} className="w-full flex justify-between gap-2 py-1 text-xs hover:text-blue-600">
-                <span className="truncate">{child.title}</span><Tag t={child.priority} />
-              </button>
-            ))}
+          <div className="mt-4 border-t border-ink-100 pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-medium text-ink-500">子需求</div>
+              <span className="text-[10px] text-ink-400">{children.length} 项</span>
+            </div>
+            <div className="space-y-0.5">
+              {children.map((child) => (
+                <button key={child.id} onClick={() => navigate(`/project/${projectId}/requirements/${child.id}`)} className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-ink-600 hover:bg-ink-50 hover:text-brand-600">
+                  <span className="min-w-0 flex-1 truncate">{child.title}</span>
+                  <Tag t={child.priority} />
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </Card>
 
-      <Card title="AI 设计生成" className="col-span-3" extra={<span className="text-[11px] text-slate-500">由工作流模板「需求→{sub === "原型图" ? "原型" : "接口"}」驱动</span>}>
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {(["原型图", "接口设计"] as const).map((s) => (
-            <button key={s} onClick={() => setSub(s)} className={cx("px-3 h-8 rounded-md text-xs", sub === s ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-500 hover:bg-slate-50")}>{s}</button>
-          ))}
+      <Card
+        title="AI 设计生成"
+        extra={<span className="hidden text-[11px] text-ink-500 lg:inline">工作流模板：需求 → {sub === "原型图" ? "原型" : "接口"}</span>}
+      >
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg border border-line bg-ink-50 p-1">
+            {(["原型图", "接口设计"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSub(s)}
+                className={cx(
+                  "rounded-md px-3.5 py-1.5 text-[12px] transition-colors",
+                  sub === s ? "bg-white font-medium text-ink-900 shadow-sm" : "text-ink-500 hover:text-ink-800",
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
           <div className="flex-1" />
-          <Btn v="ghost" onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("需求文档")}`)}>生成测试用例</Btn>
-          <Select opts={MODELS} />
-          <Btn onClick={run} disabled={p >= 0 && p < 100}>{p >= 0 && p < 100 ? "生成中…" : p === 100 ? "重新生成" : `生成${sub}`}</Btn>
+          <Btn v="secondary" size="sm" onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("需求文档")}`)}>生成测试用例</Btn>
+          <Select opts={MODELS} className="h-8 text-xs" />
+          <Btn size="sm" onClick={run} loading={p >= 0 && p < 100} disabled={p >= 0 && p < 100}>
+            {p >= 0 && p < 100 ? "生成中…" : p === 100 ? "重新生成" : `生成${sub}`}
+          </Btn>
         </div>
 
         {p >= 0 && p < 100 && (
-          <div className="mb-4">
-            <div className="text-xs text-slate-500 mb-1">任务进度 {p}% · {STAGES[Math.min(4, Math.floor(p / 25))]}</div>
+          <div className="mb-5 rounded-xl border border-brand-100 bg-brand-50/70 p-4">
+            <div className="mb-2 flex items-center justify-between text-[11px] text-brand-700">
+              <span>任务进度 · {STAGES[Math.min(4, Math.floor(p / 25))]}</span>
+              <span className="tabular-nums font-medium">{p}%</span>
+            </div>
             <Progress value={p} />
           </div>
         )}
 
         {!showContent ? (
-          <div className="h-72 grid place-items-center text-xs text-slate-500 border border-dashed rounded-lg">点击“生成{sub}”开始，产物将在此预览</div>
+          <div className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-dashed border-ink-200 bg-ink-50/50 p-8 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-white text-brand-500 shadow-card"><Icon name={sub === "原型图" ? "monitor" : "api"} size={22} /></div>
+            <div className="mt-4 text-[14px] font-medium text-ink-800">还没有生成{sub}</div>
+            <div className="mt-1.5 max-w-md text-[12px] leading-6 text-ink-500">
+              选择模型后点击“生成{sub}”，AI 会基于需求文档、拆分结果和知识库生成初稿，产物会在这里预览。
+            </div>
+            <Btn className="mt-4" size="sm" onClick={run}>生成{sub}</Btn>
+          </div>
         ) : sub === "原型图" ? (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">{proto && <PrototypeRenderer prototype={proto} />}</div>
-            <div className="space-y-3">
-              <div className="text-xs font-medium">校验结果</div>
-              {checks.map((check) => <div key={check.label} className="text-xs flex gap-2"><Tag t={check.status} />{check.label}</div>)}
-              <div className="flex flex-wrap gap-2 pt-3 border-t">
-                <Btn v="ghost" onClick={() => setEditorOpen(true)}>编辑结构</Btn>
-                <Btn v="ghost" onClick={() => setDiffOpen(true)}>版本对比</Btn>
-                <Btn v="ghost" onClick={exportPng}>导出 PNG</Btn>
-                <Btn onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("原型图")}`)}>作为用例输入</Btn>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+            <div>{proto && <PrototypeRenderer prototype={proto} />}</div>
+            <div className="h-fit rounded-xl border border-line bg-ink-50/50 p-4">
+              <div className="mb-3 text-[12px] font-medium text-ink-700">校验结果</div>
+              <div className="space-y-2">
+                {checks.map((check) => <div key={check.label} className="flex items-center gap-2 text-[11px] text-ink-600"><Tag t={check.status} />{check.label}</div>)}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-200 pt-4">
+                <Btn v="secondary" size="sm" onClick={() => setEditorOpen(true)}>编辑结构</Btn>
+                <Btn v="secondary" size="sm" onClick={() => setDiffOpen(true)}>版本对比</Btn>
+                <Btn v="secondary" size="sm" onClick={exportPng}>导出 PNG</Btn>
+                <Btn size="sm" onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("原型图")}`)}>作为用例输入</Btn>
               </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2"><MonacoEditor value={yaml} onChange={setYamlDraft} language="yaml" height={360} path={`${req.id}.yaml`} /></div>
-            <div className="space-y-3">
-              <div className="text-xs font-medium">接口清单（{endpoints.length}）</div>
-              {endpoints.map((endpoint) => (
-                <div key={endpoint.id} className="text-xs flex gap-2 items-center"><Tag t={endpoint.method} c={endpoint.method === "GET" ? "blue" : "green"} /><code className="truncate">{endpoint.path}</code></div>
-              ))}
-              {checks.map((check) => <div key={check.label} className="text-xs flex gap-2"><Tag t={check.status} />{check.label}</div>)}
-              <div className="flex flex-wrap gap-2 pt-3 border-t">
-                <Btn v="ghost" onClick={() => setDiffOpen(true)}>版本对比</Btn>
-                <Btn v="ghost" onClick={saveYaml}>保存修改</Btn>
-                <Btn v="ghost" onClick={() => { downloadText(`${req.id}.yaml`, yaml, "text/yaml;charset=utf-8"); toast("已导出 YAML"); }}>导出 YAML</Btn>
-                <Btn onClick={importApi}>导入到 API 测试</Btn>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="overflow-hidden rounded-xl border border-line"><MonacoEditor value={yaml} onChange={setYamlDraft} language="yaml" height={420} path={`${req.id}.yaml`} /></div>
+            <div className="h-fit rounded-xl border border-line bg-ink-50/50 p-4">
+              <div className="mb-3 text-[12px] font-medium text-ink-700">接口清单（{endpoints.length}）</div>
+              <div className="space-y-2">
+                {endpoints.map((endpoint) => (
+                  <div key={endpoint.id} className="flex items-center gap-2 text-[11px]"><Tag t={endpoint.method} c={endpoint.method === "GET" ? "blue" : "green"} /><code className="truncate font-mono text-ink-600">{endpoint.path}</code></div>
+                ))}
+                {endpoints.length === 0 && <div className="text-[11px] text-ink-500">暂无接口，生成后会显示在这里。</div>}
+              </div>
+              {checks.length > 0 && <div className="mt-4 space-y-2 border-t border-ink-200 pt-4">{checks.map((check) => <div key={check.label} className="flex items-center gap-2 text-[11px] text-ink-600"><Tag t={check.status} />{check.label}</div>)}</div>}
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-200 pt-4">
+                <Btn v="secondary" size="sm" onClick={() => setDiffOpen(true)}>版本对比</Btn>
+                <Btn v="secondary" size="sm" onClick={saveYaml}>保存修改</Btn>
+                <Btn v="secondary" size="sm" onClick={() => { downloadText(`${req.id}.yaml`, yaml, "text/yaml;charset=utf-8"); toast("已导出 YAML"); }}>导出 YAML</Btn>
+                <Btn size="sm" onClick={importApi}>导入到 API 测试</Btn>
               </div>
             </div>
           </div>
@@ -277,14 +358,14 @@ export function RequirementDetail() {
       </Modal>
 
       <Drawer open={!!preview} title={preview ? `文档预览 · ${preview.filename}` : ""} onClose={() => setPreview(null)} width="w-[720px]">
-        <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700">{preview?.text}</pre>
+        <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-ink-700">{preview?.text}</pre>
       </Drawer>
 
       <Modal open={diffOpen} title={`版本对比 · ${diffKind}`} onClose={() => setDiffOpen(false)} width="max-w-3xl">
         {diffPair.length >= 2 ? (
           <VersionDiff left={diffPair[0].content} right={diffPair[1].content} leftLabel={diffPair[0].version} rightLabel={diffPair[1].version} />
         ) : (
-          <div className="h-32 grid place-items-center text-xs text-slate-500">暂无足够版本可对比，请先生成两次产物</div>
+          <div className="h-32 grid place-items-center text-xs text-ink-500">暂无足够版本可对比，请先生成两次产物</div>
         )}
       </Modal>
     </div>

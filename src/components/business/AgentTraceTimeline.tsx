@@ -62,7 +62,7 @@ export function AgentTraceTimeline({ trace }: { trace?: AgentEvalTrace | null })
           key={`${event.kind}-${index}`}
           className={
             event.kind === "LLM"
-              ? "border-l-2 border-blue-500 bg-blue-50/40 rounded-r-md px-3 py-2"
+              ? "border-l-2 border-brand-500 bg-brand-50/40 rounded-r-md px-3 py-2"
               : event.kind === "工具"
                 ? "border-l-2 border-emerald-500 bg-emerald-50/30 rounded-r-md px-3 py-2"
                 : "border-l-2 border-violet-500 bg-violet-50/30 rounded-r-md px-3 py-2"
@@ -71,13 +71,13 @@ export function AgentTraceTimeline({ trace }: { trace?: AgentEvalTrace | null })
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <Tag t={event.kind} c={event.kind === "LLM" ? "blue" : event.kind === "工具" ? "green" : "gray"} />
-              <span className="text-xs font-medium text-slate-800 truncate">{event.title}</span>
+              <span className="text-xs font-medium text-ink-800 truncate">{event.title}</span>
             </div>
-            <span className="text-[11px] text-slate-500 shrink-0">{event.meta}</span>
+            <span className="text-[11px] text-ink-500 shrink-0">{event.meta}</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">{time(event.at)}</div>
+          <div className="text-[11px] text-ink-500 mt-1">{time(event.at)}</div>
           <details className="mt-2">
-            <summary className="text-[11px] text-blue-600 cursor-pointer select-none">查看入参 / 出参</summary>
+            <summary className="text-[11px] text-brand-600 cursor-pointer select-none">查看入参 / 出参</summary>
             <pre className="mt-2 max-h-56 overflow-auto rounded bg-slate-900 p-2.5 text-[11px] leading-5 text-emerald-300 whitespace-pre-wrap break-words">
               {JSON.stringify(event.payload, null, 2)}
             </pre>

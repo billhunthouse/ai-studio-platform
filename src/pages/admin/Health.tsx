@@ -23,7 +23,7 @@ export function Health() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <div className="text-xs text-slate-500">共 {data.length} 项依赖服务，{normal} 项正常，{warn} 项异常或告警。</div>
+        <div className="text-xs text-ink-500">共 {data.length} 项依赖服务，{normal} 项正常，{warn} 项异常或告警。</div>
         <div className="flex-1" />
         <Btn onClick={check} disabled={busy}>{busy ? "检测中…" : "重新检测"}</Btn>
       </div>
@@ -36,13 +36,13 @@ export function Health() {
               <Tag t={h.status} />
             </div>
             <div className="text-xl font-semibold mt-2">{h.metric}</div>
-            <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">{h.detail}</div>
+            <div className="text-[11px] text-ink-500 mt-1 leading-relaxed">{h.detail}</div>
           </Card>
         ))}
       </div>
 
       <Card title="依赖服务说明">
-        <div className="text-xs text-slate-600 space-y-1.5">
+        <div className="text-xs text-ink-600 space-y-1.5">
           <div>PostgreSQL / Redis / MinIO 为主库、缓存与对象存储；异常会阻断生成任务与报告下载。</div>
           <div>Celery Worker 数量决定并发生成能力；积压超过 50 会触发平台告警。</div>
           <div>Playwright 节点与设备池仅影响自动化执行，不影响 AI 生成链路。</div>
