@@ -5,3 +5,4 @@ app.db
 .pytest_cache/
 .env
 uploads/
+backups/

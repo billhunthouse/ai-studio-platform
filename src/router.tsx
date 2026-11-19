@@ -26,6 +26,7 @@ const ProfileKeys = page(() => import("@/pages/global/ProfileKeys"), "ProfileKey
 const Overview = page(() => import("@/pages/project/Overview"), "Overview");
 const RequirementList = page(() => import("@/pages/project/RequirementList"), "RequirementList");
 const RequirementDetail = page(() => import("@/pages/project/RequirementDetail"), "RequirementDetail");
+const TraceCenter = page(() => import("@/pages/project/TraceCenter"), "TraceCenter");
 const CaseList = page(() => import("@/pages/project/CaseList"), "CaseList");
 const CaseGenerate = page(() => import("@/pages/project/CaseGenerate"), "CaseGenerate");
 const CaseReview = page(() => import("@/pages/project/CaseReview"), "CaseReview");
@@ -92,6 +93,7 @@ export function AppRouter() {
           <Route path="overview" element={<Overview />} />
           <Route path="requirements" element={<RequirementList />} />
           <Route path="requirements/:rid" element={<RequirementDetail />} />
+          <Route path="trace" element={<TraceCenter />} />
           <Route path="testcases" element={<CaseList />} />
           <Route path="testcases/generate" element={<CaseGenerate />} />
           <Route path="testcases/review" element={<CaseReview />} />
