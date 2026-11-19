@@ -29,7 +29,7 @@ import json
 import re
 import subprocess
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -150,6 +150,9 @@ class ApiFact:
     response_type: str = ""
     body_type: str = ""
     body_fields: list[dict[str, Any]] = field(default_factory=list)
+    # 响应结构：page=分页(data.records/data.total)｜object=data 直接是对象｜empty=无 data
+    response_shape: str = ""
+    response_fields: list[dict[str, Any]] = field(default_factory=list)
     mapped_tables: list[str] = field(default_factory=list)
 
     @property
@@ -247,10 +250,12 @@ def parse_entity(path: Path, repo: Path) -> TableFact | None:
 # ---------------------------------------------------------------- 接口解析
 
 CLASS_PREFIX_RE = re.compile(r"@RequestMapping\s*\(\s*(?:value\s*=\s*)?" + r'"([^"]*)"')
+# 注解参数整段捕获：@PostMapping({"/a","/b"}) 一个方法挂多个 URL 必须全部展开，
+# 否则会漏端点（CustomerAuthController 同时挂了 /api/auth/login 与 /api/auth/phone）。
 METHOD_MAPPING_RE = re.compile(
-    r"@(?P<verb>Get|Post|Put|Delete|Patch)Mapping\s*(?:\(\s*(?:value\s*=\s*)?\"(?P<path>[^\"]*)\"[^)]*\))?")
+    r"@(?P<verb>Get|Post|Put|Delete|Patch)Mapping\b(?P<args>\s*\((?:[^()]|\([^()]*\))*\))?")
 SERVICE_FIELD_RE = re.compile(r"private\s+final\s+(\w+Service)\s+(\w+);")
-SERVICE_TABLES_RE = re.compile(r"关联表：([^\n<。]+)")
+SERVICE_TABLES_RE = re.compile(r"关联表：([^\n<。；;]+)")
 
 
 def split_top_level(s: str, sep: str = ",") -> list[str]:
@@ -457,7 +462,11 @@ def parse_controller(path: Path, repo: Path, permit: list[str]) -> list[ApiFact]
 
     facts: list[ApiFact] = []
     for mm in METHOD_MAPPING_RE.finditer(text):
-        sub = mm.group("path") or ""
+        # 注解里的字符串即为候选路径（过滤 consumes/produces 之类的属性值）
+        sub_paths = [x for x in re.findall(r'"([^"]*)"', mm.group("args") or "")
+                     if x.startswith("/") or x == ""]
+        sub = sub_paths[0] if sub_paths else ""
+        extra_subs = sub_paths[1:]
         after = text[mm.end():]
         # 方法签名：跳过 @Operation 等注解，找到第一个 public ... ( ... ) {
         sig_m = re.search(r"public\s+(?P<ret>[\w<>,\s\.\[\]]+?)\s+(?P<name>\w+)\s*\(", after)
@@ -517,6 +526,7 @@ def parse_controller(path: Path, repo: Path, permit: list[str]) -> list[ApiFact]
 
         ret = sig_m.group("ret").strip()
         item = generic_payload(ret)
+        resp_shape, resp_fields = parse_response(repo, item)
 
         auth = "public" if match_permit(full, permit) else (
             "login:admin" if full.startswith("/admin/") else "login:customer")
@@ -526,14 +536,44 @@ def parse_controller(path: Path, repo: Path, permit: list[str]) -> list[ApiFact]
             service=service, auth=auth, controller_class=controller,
             controller_method=sig_m.group("name"), file_path=rel_path, module=module,
             params=params, response_wrapper=ret, response_type=item,
+            response_shape=resp_shape, response_fields=resp_fields,
             body_type=body_type,
             body_fields=parse_body_fields(repo, body_type) if body_type else [],
             mapped_tables=used_tables,
         ))
+
+        # 同一方法挂多个 URL：复制其余端点，鉴权按各自路径重新判定
+        for extra in extra_subs:
+            ep = "/" + "/".join(x.strip("/") for x in (prefix, extra) if x.strip("/"))
+            ep = re.sub(r"/+", "/", ep) or "/"
+            if len(ep) > 1:
+                ep = ep.rstrip("/")
+            facts.append(replace(
+                facts[-1], path=ep,
+                auth=("public" if match_permit(ep, permit) else
+                      ("login:admin" if ep.startswith("/admin/") else "login:customer"))))
     return facts
 
 
 # ---------------------------------------------------------------- 主流程
+
+
+def parse_response(repo: Path, item: str) -> tuple[str, list[dict[str, Any]]]:
+    """把 controller 的返回类型翻译成 data 的结构，供用例断言定位字段。
+
+    用例断言要写到 `data.xxx`，因此必须知道 data 是分页还是单对象。
+    """
+    if not item:
+        return "empty", []
+    base = item.split("<")[0].strip()
+    if base in ("void", "Void", "Object"):
+        return "empty", []
+    if "Page" in base or base.endswith("List") or base.startswith("List"):
+        inner = re.findall(r"<([^<>]+)>", item)
+        target = inner[-1].strip() if inner else ""
+        return "page", parse_body_fields(repo, target) if target else []
+    return "object", parse_body_fields(repo, base)
+
 
 def generic_payload(ret: str) -> str:
     """Result<PageResult<Order>> → PageResult<Order>，只剥一层包装。"""
@@ -586,6 +626,18 @@ def write_db(dsn: str, project: str, tables: list[TableFact], apis: list[ApiFact
             cur.execute(
                 """DELETE FROM trace_relations
                    WHERE project_id=%s AND source='CODE_SCAN'""", (project,))
+            # 上一轮扫出来、这一轮已经不存在的接口/代码实体（例如解析规则修正后消失的
+            # 伪端点 api:POST:/ ）必须一起清掉，否则统计里会留下永远无法解释的孤儿。
+            keep_api = [a.id for a in apis]
+            cur.execute(
+                """DELETE FROM trace_apis
+                   WHERE project_id=%s AND source='CODE_SCAN' AND NOT (id = ANY(%s))""",
+                (project, keep_api))
+            # trace_code_artifacts 没有 source 列，它与接口一一对应，按 api_id 反查即可
+            cur.execute(
+                """DELETE FROM trace_code_artifacts
+                   WHERE project_id=%s AND NOT (api_id = ANY(%s))""",
+                (project, keep_api))
 
             # 1) 数据表（含真实字段）
             table_by_name: dict[str, str] = {}
@@ -620,7 +672,10 @@ def write_db(dsn: str, project: str, tables: list[TableFact], apis: list[ApiFact
                 if a.body_fields:
                     req_schema["bodyType"] = a.body_type
                     req_schema["bodyFields"] = a.body_fields
-                resp_schema = {"wrapper": a.response_wrapper, "itemType": a.response_type}
+                resp_schema = {"wrapper": a.response_wrapper, "shape": a.response_shape,
+                               "itemType": a.response_type}
+                if a.response_fields:
+                    resp_schema["fields"] = a.response_fields
                 cur.execute(
                     """INSERT INTO trace_apis
                        (id, project_id, method, path, summary, service, request_schema,
