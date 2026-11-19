@@ -21,6 +21,9 @@ export interface TraceRelation {
 export interface TraceOverview {
   requirementTotal: number;
   coverageRate: number;
+  linkedRate: number;
+  layerCoverage: Record<string, number>;
+  gaps: Array<{ id: string; title: string; missing: string[] }>;
   pendingRelationCount: number;
   staleRelationCount: number;
 }

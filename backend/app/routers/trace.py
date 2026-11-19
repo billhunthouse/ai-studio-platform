@@ -772,17 +772,28 @@ def overview(pid: str = Depends(project_scope), db: Session = Depends(get_db)):
     # 覆盖率：四层（页面/接口/代码/表）均有可达实体的需求占比；linked 为至少有一层关联
     adj = _relation_graph(db, pid)
     full = linked = 0
+    per_layer: dict[str, int] = {k: 0 for k in TRACE_LAYERS}
+    gaps: list[dict[str, Any]] = []
     for r in reqs:
         found = _reachable_layers(adj, r.id)
         has = [k for k, v in found.items() if v]
         if has:
             linked += 1
+        for k, v in found.items():
+            if v:
+                per_layer[k] += 1
         if len(has) == len(TRACE_LAYERS):
             full += 1
+        else:
+            gaps.append({"id": r.id, "title": r.title,
+                         "missing": [k for k in TRACE_LAYERS if not found[k]]})
     return ok({
         "requirementTotal": req_total,
         "coverageRate": round(full / req_total, 3) if req_total else 0,
         "linkedRate": round(linked / req_total, 3) if req_total else 0,
+        # 分层覆盖：哪一层断掉一眼可见，比一个总数有用
+        "layerCoverage": per_layer,
+        "gaps": gaps,
         "pendingRelationCount": pending, "staleRelationCount": stale,
     })
 

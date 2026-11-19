@@ -109,10 +109,48 @@ export function TraceCenter() {
         <>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Stat label="需求总数" value={overview?.requirementTotal ?? "--"} />
-            <Stat label="关联覆盖率" value={overview ? `${Math.round(overview.coverageRate * 100)}%` : "--"} />
-            <Stat label="待确认关联" value={overview?.pendingRelationCount ?? "--"} />
-            <Stat label="待复核 stale" value={overview?.staleRelationCount ?? "--"} />
+            <Stat label="四层全覆盖" value={overview ? `${Math.round(overview.coverageRate * 100)}%` : "--"}
+              hint="页面/接口/代码/表 都有可达实体" />
+            <Stat label="至少一层关联" value={overview ? `${Math.round(overview.linkedRate * 100)}%` : "--"} />
+            <Stat label="待确认 / 待复核"
+              value={`${overview?.pendingRelationCount ?? "--"} / ${overview?.staleRelationCount ?? "--"}`} />
           </div>
+          {overview && (
+            <Card title="分层覆盖">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ["page", "功能页面"], ["api", "接口"],
+                  ["code_artifact", "实现代码"], ["table", "数据表"],
+                ].map(([key, label]) => {
+                  const hit = overview.layerCoverage?.[key] ?? 0;
+                  const total = overview.requirementTotal || 1;
+                  const broken = hit < total;
+                  return (
+                    <div key={key}
+                      className={`flex-1 rounded-lg border px-4 py-3 ${broken ? "border-amber-200 bg-amber-50/50" : "border-line bg-white"}`}>
+                      <div className="text-[11px] text-ink-500">{label}</div>
+                      <div className={`mt-1 text-[15px] font-semibold ${broken ? "text-amber-700" : "text-ink-900"}`}>
+                        {hit}/{total}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {!!overview.gaps?.length && (
+                <div className="mt-3 space-y-1.5">
+                  {overview.gaps.map((g) => (
+                    <button key={g.id} onClick={() => navigate(traceHref("requirement", g.id, projectId))}
+                      className="flex w-full items-center gap-2 rounded-md bg-amber-50/60 px-3 py-2 text-left text-[11px] text-amber-800 hover:bg-amber-100/60">
+                      <span className="font-mono">{g.id}</span>
+                      <span className="flex-1 truncate">{g.title}</span>
+                      <span>缺：{g.missing.map((m) => TYPE_LABEL[m] ?? m).join(" / ")}</span>
+                      <Icon name="chevron-right" size={12} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
           <Card title="当前平台在做什么">
             <div className="text-xs text-ink-600 leading-6 space-y-1">
               <p>1. 把「需求 → 功能页面 → 接口 → 实现代码 / 数据表」这条链固化成可查询的图谱。</p>
