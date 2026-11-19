@@ -1,16 +1,17 @@
 # 追溯平台 · 待办清单
 
-> 状态：`v0.5 已完成并接入 AI_Studio`（commit 1f90a8c）
+> 状态：`v0.5 已完成并接入 AI_Studio`（commit 1f90a8c）+ `真实数据已导入`
 > 说明：按优先级排列的待办清单，不按时间周期拆分；完成一项勾掉一项。
 
 ---
 
 ## P0 · 数据真实性（让平台里有真实数据）
 
-- [ ] 为 `ecommerce` 项目批量登记真实实体：从 PRD 导入功能页面、从 OpenAPI 导入接口、从 schema.sql 导入数据表
+- [x] 为 `ecommerce` 项目批量登记真实实体：8 功能页面 / 11 接口 / 6 代码实体 / 9 数据表，47 条关联（脚本 `backend/seed_traceability.py`）
+  - 数据来源：`shang-pivot-master/docs/llm-wiki` 的 03 页面地图 / 04 接口契约 / 05 数据模型
+- [x] 清理冒烟测试数据（3 条关联 + 冒烟页面/接口/表已删除）
 - [ ] 把现有 `requirements` 的 planned_release / released_in 填上真实版本
-- [ ] 清理冒烟测试数据（page:ecommerce:617e33e5、api:GET:/api/smoke/{id}、table:smoke_db:public:smoke_table 及其关联）
-- [ ] 用真实需求"商家回复评价"走一遍完整关联，替换演示数据
+- [ ] 补充剩余需求的关联（当前 4 条需求已全覆盖，扩展到全部需求需先有 PRD 输入）
 
 ## P0 · 扫描器（自动发现，当前全是人工登记）
 
@@ -31,6 +32,7 @@
 - [ ] 版本切换与版本对比视图
 - [ ] 待确认页支持按来源/置信度筛选、行内查看 evidence
 - [ ] 周报视图：本周确认数、stale 数、覆盖率变化
+- [ ] 关联链路视图支持反向追溯（后端 `impact/backward` 已有，前端只接了正向）
 
 ## P1 · 治理与质量
 
@@ -63,12 +65,31 @@
 
 | 能力 | 当前状态 |
 | --- | --- |
-| 关联维护 | 人工登记为主，扫描器待实现 |
-| 影响分析 | 一跳到三跳已可用，多跳权重计算未做 |
+| 关联维护 | 人工登记为主，扫描器待实现；已导入 47 条真实关联 |
+| 影响分析 | 一到四跳可用（含代码层），多跳权重计算未做 |
 | 版本 | 表结构已支持 Release 快照，接口/页面未接 |
 | 审计 | 后端记录完整，前端查询页未做 |
 | 前端 | 追溯中心 4 个 Tab 可用；实体独立管理页未做 |
-| 数据 | ecommerce 项目仅冒烟测试数据，需导入真实数据 |
+| 数据 | ecommerce 项目 4 条需求五层全覆盖（页面/接口/代码/表） |
+
+### 数据导入说明
+
+真实数据由 `backend/seed_traceability.py` 导入，幂等可重跑：
+
+```bash
+cd backend
+export $(grep -E '^SEED_ADMIN_PASSWORD=' .env | xargs)
+.venv/bin/python seed_traceability.py
+```
+
+数据依据 `shang-pivot-master/docs/llm-wiki`：
+- 页面 8 个：`/checkout`、`/orders/:id`、`/orders`、`/after-sales/apply`、`/admin/aftersales`、`/admin/coupons`、`/login`、`/member`
+- 接口 11 个：来自 04-接口契约的 C 端与后台路径
+- 表 9 张：`commerce`（order/order_item/after_sale/payment/coupon）+ `member`（member/member_level/points_log/sms_code）
+- 代码 6 个：`OrderController#create`、`OrderService#calcAmount`、`AfterSaleController#apply`、`AfterSaleService#audit`、`AuthService#verifyCode`、`MemberService#benefits`
+
+> 注：`/member`、`/login`、`coupon`/`sms_code` 等实体的路由与表名是根据需求描述合理推导的，
+> 其余均直接来自 llm-wiki 文档。若与真实代码仓库有出入，以仓库为准修正。
 
 ---
 

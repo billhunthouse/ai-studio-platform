@@ -69,6 +69,8 @@ class RelationReject(BaseModel):
 class PageCreate(BaseModel):
     name: str = Field(min_length=1)
     feature_domain: str
+    code: str | None = None
+    route: str | None = None
     prd_section: str | None = None
     prototype_ref: str | None = None
     business_owner: str | None = None
@@ -94,6 +96,15 @@ class TableCreate(BaseModel):
     primary_key: str | None = None
 
 
+class CodeArtifactCreate(BaseModel):
+    repo: str
+    service: str
+    file_path: str
+    entry_point: str | None = None
+    commit_sha: str | None = None
+    api_id: str | None = None
+
+
 # ---------- helpers ----------
 def _audit(db: Session, pid: str, user: User, action: str, entity_type: str | None = None,
            entity_id: str | None = None, before: dict | None = None, after: dict | None = None,
@@ -117,7 +128,7 @@ def _entity_row(db: Session, etype: str, eid: str, pid: str):
 
 
 def _entity_name(etype: str, obj) -> str:
-    for attr in ("title", "name", "summary", "path"):
+    for attr in ("title", "name", "entry_point", "summary", "path"):
         v = getattr(obj, attr, None)
         if v:
             return str(v)
@@ -141,14 +152,24 @@ def list_pages(pid: str = Depends(project_scope), db: Session = Depends(get_db))
 @router.post("/pages")
 def create_page(body: PageCreate, pid: str = Depends(project_editor_scope),
                 user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    eid = f"page:{pid}:{uuid.uuid4().hex[:8]}"
     exists = db.scalar(select(TracePage).where(
         TracePage.project_id == pid, TracePage.name == body.name,
         TracePage.feature_domain == body.feature_domain))
     if exists:
         raise HTTPException(409, "同名功能页面已存在")
-    row = TracePage(id=eid, project_id=pid, **body.model_dump())
-    db.add(row); _audit(db, pid, user, "create", "page", eid, after=body.model_dump())
+    # ID 规范 page:{proj}:{feature}-{seq}；未给 code 时回退随机串（兼容旧调用）
+    if body.code:
+        seq = (db.scalar(select(func.count()).select_from(TracePage).where(
+            TracePage.project_id == pid,
+            TracePage.feature_domain == body.feature_domain)) or 0) + 1
+        eid = f"page:{pid}:{body.code}-{seq:03d}"
+    else:
+        eid = f"page:{pid}:{uuid.uuid4().hex[:8]}"
+    payload = body.model_dump(exclude={"code", "route"})
+    if body.route and not payload.get("prototype_ref"):
+        payload["prototype_ref"] = body.route
+    row = TracePage(id=eid, project_id=pid, **payload)
+    db.add(row); _audit(db, pid, user, "create", "page", eid, after=payload)
     db.commit()
     return ok({"id": eid})
 
@@ -230,6 +251,45 @@ def create_table(body: TableCreate, pid: str = Depends(project_editor_scope),
         raise HTTPException(409, "表已存在")
     row = TraceTable(id=eid, project_id=pid, **body.model_dump())
     db.add(row); _audit(db, pid, user, "create", "table", eid, after=body.model_dump())
+    db.commit()
+    return ok({"id": eid})
+
+
+# ---------- 代码层实体 ----------
+@router.get("/code-artifacts")
+def list_code_artifacts(service: str | None = None, pid: str = Depends(project_scope),
+                        db: Session = Depends(get_db)):
+    q = select(TraceCodeArtifact).where(TraceCodeArtifact.project_id == pid)
+    if service:
+        q = q.where(TraceCodeArtifact.service == service)
+    rows = db.scalars(q).all()
+    result = []
+    for r in rows:
+        upstream = db.scalar(select(func.count()).select_from(TraceRelation).where(
+            TraceRelation.project_id == pid, TraceRelation.status == "confirmed",
+            TraceRelation.dst_type == "code_artifact", TraceRelation.dst_id == r.id,
+        )) or 0
+        downstream = db.scalar(select(func.count()).select_from(TraceRelation).where(
+            TraceRelation.project_id == pid, TraceRelation.status == "confirmed",
+            TraceRelation.src_type == "code_artifact", TraceRelation.src_id == r.id,
+        )) or 0
+        result.append({
+            "id": r.id, "repo": r.repo, "service": r.service, "filePath": r.file_path,
+            "entryPoint": r.entry_point, "commitSha": r.commit_sha, "status": r.status,
+            "upstreamApiCount": upstream, "downstreamTableCount": downstream,
+        })
+    return ok(result)
+
+
+@router.post("/code-artifacts")
+def create_code_artifact(body: CodeArtifactCreate, pid: str = Depends(project_editor_scope),
+                         user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    key = body.entry_point or body.file_path
+    eid = f"code:{body.repo}:{body.service}:{key}"
+    if db.get(TraceCodeArtifact, eid):
+        raise HTTPException(409, "代码实体已存在")
+    row = TraceCodeArtifact(id=eid, project_id=pid, **body.model_dump())
+    db.add(row); _audit(db, pid, user, "create", "code_artifact", eid, after=body.model_dump())
     db.commit()
     return ok({"id": eid})
 
@@ -457,13 +517,17 @@ def impact_forward(entity_type: str, entity_id: str, max_hops: int = 3,
                    pid: str = Depends(project_scope), db: Session = Depends(get_db)):
     max_hops = min(max(1, max_hops), 5)
     result = _walk(db, pid, entity_type, entity_id, max_hops, reverse=False)
-    cross_db = any(x["type"] == "table" and
-                   (db.get(TraceTable, x["id"]).database_name !=
-                    (db.get(TraceTable, result[0]["id"]).database_name if result and result[0]["type"] == "table" else ""))
-                   for x in result if db.get(TraceTable, x["id"]))
+    # 跨库判定：链路里可达的数据表分布在多于一个 database 时告警
+    db_names: set[str] = set()
+    for x in result:
+        if x["type"] == "table":
+            tbl = db.get(TraceTable, x["id"])
+            if tbl:
+                db_names.add(tbl.database_name)
     return ok({"root": {"type": entity_type, "id": entity_id},
                "affectedCount": len(result), "items": result,
-               "crossDatabaseWarning": bool(cross_db)})
+               "crossDatabaseWarning": len(db_names) > 1,
+               "databases": sorted(db_names)})
 
 
 @router.get("/impact/backward")
@@ -477,37 +541,79 @@ def impact_backward(entity_type: str, entity_id: str, max_hops: int = 3,
 
 
 # ---------- 总览 / 矩阵 / 审计 ----------
+TRACE_LAYERS = ("page", "api", "code_artifact", "table")
+
+
+def _relation_graph(db: Session, pid: str) -> dict[tuple[str, str], list[tuple[str, str]]]:
+    """项目内 confirmed 关联的邻接表。"""
+    rels = db.scalars(select(TraceRelation).where(
+        TraceRelation.project_id == pid, TraceRelation.status == "confirmed")).all()
+    adj: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    for rel in rels:
+        adj.setdefault((rel.src_type, rel.src_id), []).append((rel.dst_type, rel.dst_id))
+    return adj
+
+
+def _reachable_layers(adj, root_id: str, max_hop: int = 4) -> dict[str, set[str]]:
+    """从需求出发多跳遍历，返回各层可达实体集合。"""
+    found: dict[str, set[str]] = {k: set() for k in TRACE_LAYERS}
+    seen = {("requirement", root_id)}
+    frontier = [("requirement", root_id)]
+    for _ in range(max_hop):
+        nxt = []
+        for node in frontier:
+            for dst in adj.get(node, []):
+                if dst in seen:
+                    continue
+                seen.add(dst)
+                nxt.append(dst)
+                if dst[0] in found:
+                    found[dst[0]].add(dst[1])
+        frontier = nxt
+        if not frontier:
+            break
+    return found
+
+
 @router.get("/overview")
 def overview(pid: str = Depends(project_scope), db: Session = Depends(get_db)):
-    req_total = db.scalar(select(func.count()).select_from(Requirement).where(
-        Requirement.project_id == pid)) or 0
+    reqs = db.scalars(select(Requirement).where(Requirement.project_id == pid)).all()
+    req_total = len(reqs)
     pending = db.scalar(select(func.count()).select_from(TraceRelation).where(
         TraceRelation.project_id == pid, TraceRelation.status == "proposed")) or 0
     stale = db.scalar(select(func.count()).select_from(TraceRelation).where(
         TraceRelation.project_id == pid, TraceRelation.status == "stale")) or 0
-    # 覆盖率：五层都有 confirmed 关联的需求占比（简化：有页面关联即算部分覆盖）
-    with_pages = db.scalar(select(func.count(func.distinct(TraceRelation.src_id))).select_from(
-        TraceRelation).where(TraceRelation.project_id == pid,
-                             TraceRelation.src_type == "requirement",
-                             TraceRelation.status == "confirmed")) or 0
+    # 覆盖率：四层（页面/接口/代码/表）均有可达实体的需求占比；linked 为至少有一层关联
+    adj = _relation_graph(db, pid)
+    full = linked = 0
+    for r in reqs:
+        found = _reachable_layers(adj, r.id)
+        has = [k for k, v in found.items() if v]
+        if has:
+            linked += 1
+        if len(has) == len(TRACE_LAYERS):
+            full += 1
     return ok({
         "requirementTotal": req_total,
-        "coverageRate": round(with_pages / req_total, 3) if req_total else 0,
+        "coverageRate": round(full / req_total, 3) if req_total else 0,
+        "linkedRate": round(linked / req_total, 3) if req_total else 0,
         "pendingRelationCount": pending, "staleRelationCount": stale,
     })
 
 
 @router.get("/matrix")
 def matrix(pid: str = Depends(project_scope), db: Session = Depends(get_db)):
+    """追踪矩阵：从需求出发按可达性统计各层实体数。
+
+    注意：需求→接口/表 通常是二跳、三跳关系（经页面、代码），
+    因此这里做多跳遍历而非只看一跳出边。
+    """
     reqs = db.scalars(select(Requirement).where(Requirement.project_id == pid).limit(200)).all()
+    adj = _relation_graph(db, pid)
     rows = []
     for r in reqs:
-        counts = {}
-        for etype in ("page", "api", "code_artifact", "table"):
-            counts[etype] = db.scalar(select(func.count()).select_from(TraceRelation).where(
-                TraceRelation.project_id == pid, TraceRelation.status == "confirmed",
-                TraceRelation.src_type == "requirement", TraceRelation.src_id == r.id,
-                TraceRelation.dst_type == etype)) or 0
+        found = _reachable_layers(adj, r.id)
+        counts = {k: len(v) for k, v in found.items()}
         filled = sum(1 for c in counts.values() if c > 0)
         missing = [e for e, c in counts.items() if c == 0]
         rows.append({

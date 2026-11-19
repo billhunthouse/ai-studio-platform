@@ -56,7 +56,7 @@ const SIDEBAR_GROUPS: Record<Layer, { label: string; keys: string[] }[]> = {
     { label: "账户", keys: ["profile"] },
   ],
   project: [
-    { label: "核心流程", keys: ["overview", "requirements", "testcases"] },
+    { label: "核心流程", keys: ["overview", "requirements", "trace", "testcases"] },
     { label: "自动化", keys: ["api", "webui", "app"] },
     { label: "智能与知识", keys: ["ai", "knowledge"] },
     { label: "交付", keys: ["tasks"] },

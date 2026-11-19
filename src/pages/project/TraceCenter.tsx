@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { traceApi } from "@/api";
+import { useEffect, useState } from "react";
+import { requirementsApi, traceApi } from "@/api";
+import type { Requirement } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
 import { Card, Stat, Table, Tag } from "@/components/ui";
@@ -13,6 +14,11 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "matrix", label: "追踪矩阵" },
 ];
 
+function initialTab(): Tab {
+  const t = new URLSearchParams(window.location.search).get("tab");
+  return TABS.some((x) => x.key === t) ? (t as Tab) : "overview";
+}
+
 const TYPE_LABEL: Record<string, string> = {
   requirement: "需求", page: "功能页面", api: "接口",
   code_artifact: "代码", table: "数据表",
@@ -20,17 +26,24 @@ const TYPE_LABEL: Record<string, string> = {
 
 export function TraceCenter() {
   const { projectId } = useApp();
-  const [tab, setTab] = useState<Tab>("overview");
-  const [selectedReq, setSelectedReq] = useState("REQ-018");
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [selectedReq, setSelectedReq] = useState("");
   const [cohort, setCohort] = useState(3);
   const [toast, setToast] = useState("");
 
+  const { data: reqList } = useAsync(() => requirementsApi.list(), [projectId], [] as Requirement[]);
   const { data: overview } = useAsync(() => traceApi.overview(), [projectId], null);
   const { data: matrix, reload: reloadMatrix } = useAsync(() => traceApi.matrix(), [projectId], { columns: [], rows: [] });
   const { data: pending, reload: reloadPending } = useAsync(
     () => traceApi.pending("proposed"), [projectId], { total: 0, staleCount: 0, items: [] });
   const { data: impact } = useAsync(
-    () => traceApi.impactForward("requirement", selectedReq, cohort), [projectId, selectedReq, cohort], null);
+    () => (selectedReq ? traceApi.impactForward("requirement", selectedReq, cohort) : Promise.resolve(null)),
+    [projectId, selectedReq, cohort], null);
+
+  // 需求列表就绪后默认选中第一条，避免手填 unknow ID
+  useEffect(() => {
+    if (!selectedReq && reqList?.length) setSelectedReq(reqList[0].id);
+  }, [reqList, selectedReq]);
 
   const flash = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2200); };
   const confirm = async (rid: string) => {
@@ -49,11 +62,6 @@ export function TraceCenter() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">追溯中心</h1>
-        <p className="text-xs text-ink-500 mt-1">需求 → 功能页面 → 接口 → 代码 → 数据表 双向可追溯</p>
-      </div>
-
       <div className="flex gap-1 border-b border-line">
         {TABS.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
@@ -74,7 +82,7 @@ export function TraceCenter() {
           </div>
           <Card title="使用说明">
             <div className="text-xs text-ink-600 leading-6 space-y-1">
-              <p>1. 在「关联链路」输入需求 ID，查看它影响的页面、接口、代码和数据表。</p>
+              <p>1. 「关联链路」选择需求后，查看它经功能页面、接口、代码到数据表的完整影响路径。</p>
               <p>2. 扫描发现的候选关联进入「待确认」，确认后才进入正式图谱。</p>
               <p>3. 「追踪矩阵」按需求列出五层关联数量，快速发现覆盖缺口。</p>
               <p className="text-ink-400">当前为 v0.5 能力：实体登记与人工关联可用；自动扫描器在待办清单中。</p>
@@ -87,12 +95,17 @@ export function TraceCenter() {
         <>
           <Card title="选择需求">
             <div className="flex items-center gap-3">
-              <input value={selectedReq} onChange={(e) => setSelectedReq(e.target.value)}
-                className="border border-line rounded-md px-3 py-2 text-xs w-72"
-                placeholder="需求 ID，如 REQ-018" />
+              <select value={selectedReq} onChange={(e) => setSelectedReq(e.target.value)}
+                className="border border-line rounded-md px-3 py-2 text-xs w-80">
+                {!reqList?.length && <option value="">暂无需求</option>}
+                {reqList?.map((r) => (
+                  <option key={r.id} value={r.id}>{r.id} · {r.title}</option>
+                ))}
+              </select>
               <select value={cohort} onChange={(e) => setCohort(Number(e.target.value))}
                 className="border border-line rounded-md px-3 py-2 text-xs">
-                <option value={1}>1 跳</option><option value={2}>2 跳</option><option value={3}>3 跳</option>
+                <option value={1}>1 跳</option><option value={2}>2 跳</option>
+                <option value={3}>3 跳</option><option value={4}>4 跳</option>
               </select>
               <span className="text-xs text-ink-500">影响实体：{impact?.affectedCount ?? "--"}</span>
               {impact?.crossDatabaseWarning && <Tag t="涉及跨库" c="amber" />}
