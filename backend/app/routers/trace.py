@@ -47,6 +47,53 @@ REVERSE_LABEL = {
     "READS_WRITES": "被读写", "CROSS_DB_READ": "被跨库读", "DERIVED_FROM": "包含子需求",
 }
 
+# 关系语义字典：把枚举翻译成人话，并给出类别（用于前端配色/分组）
+# category: structure 结构拆解 / call 调用 / implement 实现 / data 数据读写 / derive 派生
+RELATION_META: list[dict[str, Any]] = [
+    {
+        "type": "SPLITS_INTO", "label": "拆分为", "reverseLabel": "支撑需求",
+        "category": "structure", "from": "requirement", "to": "page",
+        "question": "这条需求由哪几个功能页面承载？",
+        "example": "REQ-018 优惠券 → 确认订单页 / 优惠券管理页",
+        "note": "需求拆解，是追溯链的起点",
+    },
+    {
+        "type": "TRIGGERS", "label": "调用接口", "reverseLabel": "被页面调用",
+        "category": "call", "from": "page", "to": "api",
+        "question": "这个页面会发起哪些请求？",
+        "example": "确认订单页 → POST /api/orders",
+        "note": "页面与接口的调用关系",
+    },
+    {
+        "type": "EXPOSED_BY", "label": "由代码实现", "reverseLabel": "实现该接口",
+        "category": "implement", "from": "api", "to": "code_artifact",
+        "question": "这个接口最终落在哪个类/方法上？",
+        "example": "POST /api/orders → OrderController#create",
+        "note": "原名读起来是反的（代码暴露接口），语义上等于 IMPLEMENTS",
+    },
+    {
+        "type": "READS_WRITES", "label": "读写数据表", "reverseLabel": "被读写",
+        "category": "data", "from": "api|code_artifact", "to": "table",
+        "question": "这段逻辑动了哪些表？",
+        "example": "POST /api/orders → order / order_item / coupon",
+        "note": "不区分读与写，避免枚举爆炸；读/写明细放 relation.note",
+    },
+    {
+        "type": "CROSS_DB_READ", "label": "跨库读取", "reverseLabel": "被跨库读取",
+        "category": "data", "from": "api|code_artifact", "to": "table",
+        "question": "是否读了别的库？跨库会让事务与回滚失效",
+        "example": "member-service → commerce.order（跨库）",
+        "note": "本质是 READS_WRITES + 跨库标记，独立成枚举属于历史设计，建议后续收敛为 flag",
+    },
+    {
+        "type": "DERIVED_FROM", "label": "派生自", "reverseLabel": "包含子需求",
+        "category": "derive", "from": "requirement", "to": "requirement",
+        "question": "这条子需求来自哪条主需求？",
+        "example": "REQ-018-1 → REQ-018",
+        "note": "需求拆分时的父子关系",
+    },
+]
+
 
 # ---------- Schemas ----------
 class RelationCreate(BaseModel):
@@ -336,6 +383,137 @@ def entity_detail(entity_type: str, entity_id: str, pid: str = Depends(project_s
                                               "downstream": pkg(downstream, False)}})
 
 
+@router.get("/relations/meta")
+def relations_meta():
+    """关系类型语义字典：把 SPLITS_INTO / TRIGGERS 之类的枚举翻译成人话。"""
+    return ok({"items": RELATION_META,
+               "categories": {
+                   "structure": "结构拆解", "call": "调用",
+                   "implement": "实现", "data": "数据读写", "derive": "派生",
+               }})
+
+
+@router.get("/detail")
+def entity_detail_full(entity_type: str, entity_id: str,
+                       pid: str = Depends(project_scope), db: Session = Depends(get_db)):
+    """实体详情页聚合接口：实体本身 + 上下游 + 按类型的扩展块。"""
+    etype, eid = entity_type, entity_id
+    obj = _entity_row(db, etype, eid, pid)
+    base = {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+    for k, v in list(base.items()):
+        if hasattr(v, "isoformat"):
+            base[k] = v.isoformat()
+
+    def rel_pkg(rel: TraceRelation, other_type: str, other_id: str, reverse: bool) -> dict[str, Any]:
+        m, _ = ENTITY_MAP.get(other_type, (None, ""))
+        other = db.get(m, other_id) if m else None
+        meta = next((x for x in RELATION_META if x["type"] == rel.rel_type), {})
+        return {
+            "relationId": str(rel.id), "relType": rel.rel_type,
+            "relLabel": meta.get("reverseLabel" if reverse else "label", rel.rel_type),
+            "category": meta.get("category", ""),
+            "type": other_type, "id": other_id,
+            "name": _entity_name(other_type, other) if other else other_id,
+            "subtitle": _entity_subtitle(other_type, other),
+            "source": rel.source, "confidence": rel.confidence,
+        }
+
+    up = [rel_pkg(r, r.src_type, r.src_id, True) for r in db.scalars(select(TraceRelation).where(
+        TraceRelation.project_id == pid, TraceRelation.status == "confirmed",
+        TraceRelation.dst_type == etype, TraceRelation.dst_id == eid)).all()]
+    down = [rel_pkg(r, r.dst_type, r.dst_id, False) for r in db.scalars(select(TraceRelation).where(
+        TraceRelation.project_id == pid, TraceRelation.status == "confirmed",
+        TraceRelation.src_type == etype, TraceRelation.src_id == eid)).all()]
+
+    extra: dict[str, Any] = {}
+
+    if etype == "api":
+        extra["contract"] = {
+            "authRequirement": obj.auth_requirement,
+            "service": obj.service,
+            "specRef": obj.spec_ref,
+            "requestSchema": obj.request_schema or {},
+            "responseSchema": obj.response_schema or {},
+            "internalCalls": obj.internal_calls or "",
+        }
+        extra["implementations"] = [
+            {"filePath": c.file_path, "entryPoint": c.entry_point, "commitSha": c.commit_sha}
+            for c in db.scalars(select(TraceCodeArtifact).where(
+                TraceCodeArtifact.project_id == pid,
+                or_(TraceCodeArtifact.api_id == eid,
+                    TraceCodeArtifact.id.in_([r["id"] for r in down if r["type"] == "code_artifact"] or [""])),
+            )).all()
+        ]
+        extra["tables"] = [{"id": r["id"], "name": r["name"], "subtitle": r["subtitle"]}
+                           for r in down if r["type"] == "table"]
+        extra["pages"] = [{"id": r["id"], "name": r["name"], "subtitle": r["subtitle"]}
+                          for r in up if r["type"] == "page"]
+        extra["implemented"] = bool(extra["implementations"])
+
+    elif etype == "table":
+        extra["columns"] = obj.columns or []
+        extra["indexes"] = obj.indexes or []
+        extra["primaryKey"] = obj.primary_key
+        extra["writers"] = [{"type": r["type"], "id": r["id"], "name": r["name"],
+                             "relLabel": r["relLabel"]} for r in up]
+        back = _walk(db, pid, etype, eid, 4, reverse=True)
+        extra["requirements"] = [x for x in back if x["type"] == "requirement"]
+
+    elif etype == "page":
+        extra["requirements"] = [{"id": r["id"], "name": r["name"]}
+                                 for r in up if r["type"] == "requirement"]
+        for r in up:
+            if r["type"] == "requirement":
+                m, _ = ENTITY_MAP["requirement"]
+                req = db.get(m, r["id"])
+                if req:
+                    extra.setdefault("requirementDetail", {
+                        "id": req.id, "title": req.title, "priority": req.priority,
+                        "status": req.status, "owner": req.owner_name or "",
+                        "description": (req.description or "")[:600],
+                    })
+        extra["apis"] = [{"id": r["id"], "name": r["name"], "subtitle": r["subtitle"]}
+                         for r in down if r["type"] == "api"]
+        extra["tables"] = [{"id": r["id"], "name": r["name"]}
+                           for r in _walk(db, pid, etype, eid, 3, reverse=False) if r["type"] == "table"]
+
+    elif etype == "code_artifact":
+        extra["apis"] = [{"id": r["id"], "name": r["name"], "subtitle": r["subtitle"]}
+                         for r in up if r["type"] == "api"]
+        extra["tables"] = [{"id": r["id"], "name": r["name"]} for r in down if r["type"] == "table"]
+        extra["filePath"] = obj.file_path
+        extra["entryPoint"] = obj.entry_point
+
+    elif etype == "requirement":
+        extra["pages"] = [{"id": r["id"], "name": r["name"]} for r in down if r["type"] == "page"]
+        reach = _reachable_layers(_relation_graph(db, pid), eid, 4)
+        extra["layerCounts"] = {k: len(v) for k, v in reach.items()}
+
+    return ok({"entity": base, "entityType": etype,
+               "relations": {"upstream": up, "downstream": down}, "extra": extra})
+
+
+def _entity_subtitle(etype: str, obj) -> str:
+    if obj is None:
+        return ""
+    if etype == "api":
+        return f"{obj.method} {obj.path}"
+    if etype == "table":
+        return f"{obj.database_name}.{obj.schema_name}.{obj.name}"
+    if etype == "code_artifact":
+        return obj.file_path or ""
+    if etype == "page":
+        return obj.feature_domain or ""
+    if etype == "requirement":
+        return f"{obj.priority} · {obj.status}"
+    return ""
+
+
+def _read_write_hint(columns: list[dict]) -> dict[str, int]:
+    """（保留占位）字段级读写方向待扫描器支持方法体解析后再开放。"""
+    return {"columnCount": len(columns)}
+
+
 # ---------- 关联管理 ----------
 @router.get("/relations")
 def query_relations(direction: Literal["forward", "backward", "both"] = "both",
@@ -516,7 +694,10 @@ def _walk(db: Session, pid: str, etype: str, eid: str, max_hops: int,
 def impact_forward(entity_type: str, entity_id: str, max_hops: int = 3,
                    pid: str = Depends(project_scope), db: Session = Depends(get_db)):
     max_hops = min(max(1, max_hops), 5)
-    result = _walk(db, pid, entity_type, entity_id, max_hops, reverse=False)
+    # 先探明真实深度，再按请求上限裁剪：链路只有 3 层时不该给"4 跳"这种空选项
+    full = _walk(db, pid, entity_type, entity_id, 5, reverse=False)
+    max_depth = max((x["hop"] for x in full), default=0)
+    result = [x for x in full if x["hop"] <= max_hops]
     # 跨库判定：链路里可达的数据表分布在多于一个 database 时告警
     db_names: set[str] = set()
     for x in result:
@@ -524,8 +705,13 @@ def impact_forward(entity_type: str, entity_id: str, max_hops: int = 3,
             tbl = db.get(TraceTable, x["id"])
             if tbl:
                 db_names.add(tbl.database_name)
+    depth_counts: dict[int, int] = {}
+    for x in result:
+        depth_counts[x["hop"]] = depth_counts.get(x["hop"], 0) + 1
     return ok({"root": {"type": entity_type, "id": entity_id},
                "affectedCount": len(result), "items": result,
+               "maxDepth": max_depth, "depthCounts": depth_counts,
+               "truncated": max_hops < max_depth,
                "crossDatabaseWarning": len(db_names) > 1,
                "databases": sorted(db_names)})
 

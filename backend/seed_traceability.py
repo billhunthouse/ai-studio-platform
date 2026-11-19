@@ -49,21 +49,10 @@ APIS = [
 ]
 
 CODES = [
-    # repo, service, entry_point, file_path, api
-    ("shang-mall", "commerce-service", "OrderController#create",
-     "src/main/java/com/shang/order/OrderController.java", "POST:/api/orders"),
-    ("shang-mall", "commerce-service", "OrderService#calcAmount",
-     "src/main/java/com/shang/order/OrderService.java", "POST:/api/orders"),
-    ("shang-mall", "commerce-service", "AfterSaleController#apply",
-     "src/main/java/com/shang/aftersale/AfterSaleController.java", "POST:/api/after-sales"),
-    ("shang-mall", "commerce-service", "AfterSaleService#audit",
-     "src/main/java/com/shang/aftersale/AfterSaleService.java",
-     "POST:/admin/after-sales/{id}/audit"),
-    ("shang-mall", "member-service", "AuthService#verifyCode",
-     "src/main/java/com/shang/member/AuthService.java", "POST:/api/auth/login-by-sms"),
-    ("shang-mall", "member-service", "MemberService#benefits",
-     "src/main/java/com/shang/member/MemberService.java", "GET:/api/member/benefits"),
+    # 代码实体不再由种子脚本编造：类名、文件路径、commit 都必须来自真实仓库，
+    # 现在统一由 scanners/java_scanner.py 扫描 Spring 控制器生成（source=CODE_SCAN）。
 ]
+
 
 TABLES = [
     # database, schema, name, service, primary_key, columns
@@ -127,13 +116,6 @@ RELATIONS = [
     ("page", "mall-member", "TRIGGERS", "api", "GET:/api/member/benefits"),
     ("page", "mall-orders", "TRIGGERS", "api", "GET:/api/orders"),
     # 接口 → 代码
-    ("api", "POST:/api/orders", "EXPOSED_BY", "code_artifact", "OrderController#create"),
-    ("api", "POST:/api/orders", "EXPOSED_BY", "code_artifact", "OrderService#calcAmount"),
-    ("api", "POST:/api/after-sales", "EXPOSED_BY", "code_artifact", "AfterSaleController#apply"),
-    ("api", "POST:/admin/after-sales/{id}/audit", "EXPOSED_BY", "code_artifact",
-     "AfterSaleService#audit"),
-    ("api", "POST:/api/auth/login-by-sms", "EXPOSED_BY", "code_artifact", "AuthService#verifyCode"),
-    ("api", "GET:/api/member/benefits", "EXPOSED_BY", "code_artifact", "MemberService#benefits"),
     # 接口 → 表
     ("api", "POST:/api/orders", "READS_WRITES", "table", "commerce.order"),
     ("api", "POST:/api/orders", "READS_WRITES", "table", "commerce.order_item"),
@@ -153,11 +135,6 @@ RELATIONS = [
     ("api", "GET:/api/member/benefits", "READS_WRITES", "table", "member.member_level"),
     ("api", "POST:/admin/coupons", "READS_WRITES", "table", "commerce.coupon"),
     # 代码 → 表
-    ("code_artifact", "OrderService#calcAmount", "READS_WRITES", "table", "commerce.coupon"),
-    ("code_artifact", "OrderService#calcAmount", "READS_WRITES", "table", "commerce.order"),
-    ("code_artifact", "AfterSaleService#audit", "READS_WRITES", "table", "commerce.after_sale"),
-    ("code_artifact", "AfterSaleService#audit", "READS_WRITES", "table", "commerce.payment"),
-    ("code_artifact", "MemberService#benefits", "READS_WRITES", "table", "member.member_level"),
 ]
 
 # ---------------------------------------------------------------- 客户端
@@ -286,7 +263,7 @@ def main() -> None:
         code, body = c.call("POST", "/trace/relations", json={
             "src_type": src_type, "src_id": src_id, "rel_type": rel_type,
             "dst_type": dst_type, "dst_id": dst_id,
-            "note": "来源: llm-wiki 页面地图/接口契约/数据模型",
+            "note": "来源: llm-wiki 页面地图/接口契约/数据模型（代码层由扫描器提供）",
         })
         if code in (200, 201):
             ok_cnt += 1

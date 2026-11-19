@@ -27,6 +27,7 @@ const Overview = page(() => import("@/pages/project/Overview"), "Overview");
 const RequirementList = page(() => import("@/pages/project/RequirementList"), "RequirementList");
 const RequirementDetail = page(() => import("@/pages/project/RequirementDetail"), "RequirementDetail");
 const TraceCenter = page(() => import("@/pages/project/TraceCenter"), "TraceCenter");
+const TraceEntity = page(() => import("@/pages/project/TraceEntity"), "TraceEntity");
 const CaseList = page(() => import("@/pages/project/CaseList"), "CaseList");
 const CaseGenerate = page(() => import("@/pages/project/CaseGenerate"), "CaseGenerate");
 const CaseReview = page(() => import("@/pages/project/CaseReview"), "CaseReview");
@@ -94,6 +95,7 @@ export function AppRouter() {
           <Route path="requirements" element={<RequirementList />} />
           <Route path="requirements/:rid" element={<RequirementDetail />} />
           <Route path="trace" element={<TraceCenter />} />
+          <Route path="trace/entity" element={<TraceEntity />} />
           <Route path="testcases" element={<CaseList />} />
           <Route path="testcases/generate" element={<CaseGenerate />} />
           <Route path="testcases/review" element={<CaseReview />} />

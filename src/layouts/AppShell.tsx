@@ -82,6 +82,8 @@ export function AppShell({ layer }: { layer: Layer }) {
   const nav = resolveNav(location.pathname);
   const menu = nav.menu ?? MENUS[layer][0];
   const activeTab = nav.tab?.label ?? menu.tabs[0].label;
+  // hidden 的页签只用于面包屑/高亮匹配，不渲染成可点击标签（如带参数的详情页）
+  const visibleTabs = menu.tabs.filter((t) => !t.hidden);
   const globalMenus = MENUS.global.filter((m) => (m.key !== "team" && m.key !== "mcp") || isAdmin);
   const layerMenus = layer === "global" ? globalMenus : MENUS[layer];
   const groups = groupMenus(layerMenus, layer);
@@ -213,9 +215,9 @@ export function AppShell({ layer }: { layer: Layer }) {
                 <div className="mt-1 text-[12px] text-ink-500">{PAGE_HINTS[menu.key] ?? (layer === "project" ? "当前项目的测试资产与执行情况" : layer === "admin" ? "平台级配置与治理" : "全局工作台与组织协作")}</div>
               </div>
             </div>
-            {menu.tabs.length > 1 ? (
+            {visibleTabs.length > 1 ? (
               <div className="mt-4 flex gap-6 overflow-x-auto">
-                {menu.tabs.map((tab) => (
+                {visibleTabs.map((tab) => (
                   <button
                     key={tab.label}
                     onClick={() => goTab(tab.path)}
