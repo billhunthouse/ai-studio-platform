@@ -18,3 +18,5 @@ export { profileApi } from "./profile";
 export { adminApi } from "./admin";
 export { agentEvalApi } from "./agent-eval";
 export { traceApi } from "./trace";
+export { prdApi } from "./prd";
+export type { PrdDoc, PrdResponse, PrdStatus } from "./prd";

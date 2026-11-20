@@ -13,3 +13,4 @@ export { AgentCaseDetail } from "./AgentCaseDetail";
 export { AgentEvalVerify } from "./AgentEvalVerify";
 export { AgentRealCall } from "./AgentRealCall";
 export { AgentRunPanel } from "./AgentRunPanel";
+export { PrdDocument } from "./PrdDocument";

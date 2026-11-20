@@ -123,11 +123,10 @@ export function TraceCenter() {
           <Card title="需求字段列表"
             extra={<span className="text-[11px] text-ink-400">点击任意行进入需求详情</span>}>
             <Table
-              cols={["编号", "标题", "优先级", "状态", "负责人", "版本", "页面", "接口", "代码", "表"]}
+              cols={["标题", "优先级", "状态", "负责人", "版本", "页面", "接口", "代码", "表"]}
               rows={(reqList ?? []).map((r) => {
                 const m = matrixMap[r.id];
                 return [
-                  <span className="font-mono text-brand-500 text-[11px]">{r.id}</span>,
                   r.title,
                   <Tag t={r.priority} c={r.priority === "P0" ? "red" : r.priority === "P1" ? "amber" : "blue"} />,
                   r.status,
