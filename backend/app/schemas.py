@@ -110,7 +110,15 @@ class ApiSend(BaseModel):
     method: str = "POST"
     url: str = ""
     body: str = ""
+    headers: dict[str, str] = Field(default_factory=dict)
+    # 鉴权注入：admin=管理端身份 / customer=C 端会员 / none=不注入（由 headers 自带）
+    auth: Literal["admin", "customer", "none"] = "none"
     assertions: list[dict[str, Any]] | int = 0
+
+
+class ApiSampleRequest(BaseModel):
+    method: str = "GET"
+    path: str = Field(min_length=1)
 
 
 class SuiteCreate(BaseModel):

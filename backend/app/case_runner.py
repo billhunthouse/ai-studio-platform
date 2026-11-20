@@ -179,6 +179,38 @@ def build_body(schema: dict | None, negative: bool) -> dict:
     return body
 
 
+# ---------------------------------------------------------------- 样本探测（调试面板用）
+def probe_sample(method: str, path: str, schema: dict | None) -> dict:
+    """为调试面板生成真实样本：替换 {id} 占位、构造合法请求体、建议分页参数。
+
+    只做探测与造数，不发起被测请求本身（探测内部会调一次父列表接口取样本 id）。
+    """
+    negative = False
+    filled = path
+    notes: list[str] = []
+    if "{" in path:
+        real = _probe_id(path)
+        if real:
+            filled = re.sub(r"\{[^}]+\}", real, path)
+            notes.append(f"路径参数已替换为真实样本 id：{real}")
+        else:
+            notes.append("未能取到真实样本 id（父列表接口无数据），占位符保留待手动填写")
+    query = ""
+    if method == "GET" and re.search(
+        r"/(orders|products|-sales|reviews|users|roles|logs|stocks|permissions|dict|depts|files|addresses|favorites)$", filled):
+        query = "?page=1&size=5"
+        notes.append("列表类接口自动附加分页参数")
+    body = None
+    if method in ("POST", "PUT", "PATCH"):
+        body = build_body(schema, negative)
+        if body:
+            notes.append("请求体已按接口契约必填字段自动构造")
+        else:
+            notes.append("契约中无必填字段，请求体为空")
+    auth = "customer" if path.startswith("/api/") else "admin"
+    return {"filledPath": filled, "query": query, "body": body, "auth": auth, "notes": notes}
+
+
 # ---------------------------------------------------------------- 主入口
 def run_case(case: dict, schema_lookup=None, force: bool = False) -> dict:
     """执行一条用例，返回运行报告。schema_lookup(path,method)->schema|None 由调用方注入。"""

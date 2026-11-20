@@ -24,12 +24,12 @@ from ..excel import export_testcases, import_testcases
 from ..llm import LLMError, LLMUnavailable, extract_headings, generate_testcases, heading_alignment, local_split_requirements, relevance_coverage, split_requirements
 from ..logic import generate_artifact, next_numeric_id, now_label, parse_openapi, uid
 from ..case_engine_local import STRATEGY_CN, generate as local_generate
-from ..case_runner import run_case as run_api_case
+from ..case_runner import TOKENS as case_runner_tokens, probe_sample, run_case as run_api_case
 from ..models import Project, Requirement, RequirementFile, User
 from ..parsing import SUPPORTED_EXTENSIONS, extract_text, safe_filename
 from ..response import ok
 from ..schemas import (
-    AgentCaseGenerateRequest, ApiDefCreate, ApiSend, AppRunRequest, CaseRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
+    AgentCaseGenerateRequest, ApiDefCreate, ApiSampleRequest, ApiSend, AppRunRequest, CaseRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
     ImportYaml, RecorderStepIn, ReviewDecision, ReviewSubmit, RunRequest, ScriptCreate, ScriptUpdate, SplitConfirm,
     SuiteCreate, TestCaseCreate, TestCaseUpdate, ToolRun, YamlSave, RequirementCreate, RequirementUpdate,
 )
@@ -936,13 +936,20 @@ def validate_target(url: str) -> None:
 def send_api_request(body: ApiSend, _: str = Depends(project_scope)) -> dict[str, Any]:
     validate_target(body.url)
     started = time.perf_counter()
+    headers = dict(body.headers)
+    if body.body:
+        headers.setdefault("Content-Type", "application/json")
+    if body.auth == "admin":
+        headers.setdefault("Authorization", f"Bearer {case_runner_tokens.admin()}")
+    elif body.auth == "customer":
+        headers.setdefault("Authorization", f"Bearer {case_runner_tokens.c()}")
     try:
         with httpx.Client(timeout=settings.api_test_timeout_seconds, follow_redirects=True) as client:
             response = client.request(
                 body.method.upper(),
                 body.url,
                 content=body.body.encode("utf-8") if body.body else None,
-                headers={"Content-Type": "application/json"} if body.body else None,
+                headers=headers,
             )
     except httpx.HTTPError as exc:
         raise HTTPException(502, f"请求失败：{exc}") from exc
@@ -966,6 +973,23 @@ def send_api_request(body: ApiSend, _: str = Depends(project_scope)) -> dict[str
         "assertionsPassed": passed,
         "assertionsTotal": total,
     })
+
+
+@router.post("/api-defs/sample")
+def sample_api_request(body: ApiSampleRequest, pid: str = Depends(project_scope), db: Session = Depends(get_db)) -> dict[str, Any]:
+    """为调试面板探测真实样本：替换路径占位、按契约构造请求体。"""
+    template = body.path
+    row = db.scalar(select(TraceApi).where(
+        TraceApi.project_id == pid, TraceApi.path == template, TraceApi.method == body.method.upper()))
+    schema = (row.request_schema or None) if row else None
+    sample = probe_sample(body.method.upper(), template, schema)
+    sample["known"] = row is not None
+    if row:
+        sample["summary"] = row.summary
+        sample["service"] = row.service
+        sample["requestSchema"] = row.request_schema or {}
+        sample["responseSchema"] = row.response_schema or {}
+    return ok(sample)
 
 
 @router.get("/api-suites")

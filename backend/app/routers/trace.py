@@ -233,6 +233,24 @@ def list_apis(service: str | None = None, keyword: str | None = None,
     return ok([_api_public(db, pid, r) for r in rows])
 
 
+@router.get("/api-contract")
+def api_contract(path: str, method: str,
+                 pid: str = Depends(project_scope), db: Session = Depends(get_db)):
+    """单个接口的完整契约（含参数/请求体字段），供 API 调试面板联动。"""
+    row = db.scalar(select(TraceApi).where(
+        TraceApi.project_id == pid, TraceApi.path == path,
+        TraceApi.method == method.upper()))
+    if not row:
+        raise HTTPException(404, "接口不在追溯清单中")
+    return ok({
+        "id": row.id, "method": row.method, "path": row.path,
+        "summary": row.summary, "service": row.service,
+        "authRequirement": row.auth_requirement,
+        "requestSchema": row.request_schema or {},
+        "responseSchema": row.response_schema or {},
+    })
+
+
 def _api_public(db: Session, pid: str, r: TraceApi) -> dict[str, Any]:
     def cnt(etype: str, rel_type: str, reverse: bool = False) -> int:
         col = TraceRelation.dst_id if reverse else TraceRelation.src_id

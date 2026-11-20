@@ -166,6 +166,17 @@ export const traceApi = {
     ),
   apis: () => get<Array<{ id: string; method: string; path: string; summary: string;
     service: string; source: string; upstreamRequirementCount: number }>>("/trace/apis"),
+  /** 单接口完整契约（参数/请求体字段），供 API 调试面板联动真实业务 */
+  apiContract: (method: string, path: string) =>
+    get<{
+      id: string; method: string; path: string; summary: string; service: string; authRequirement: string;
+      requestSchema: {
+        params?: Array<{ in: string; name: string; type?: string; required?: boolean; description?: string; example?: string }>;
+        bodyFields?: Array<{ name: string; type?: string; required?: boolean; description?: string; example?: string }>;
+        bodyType?: string;
+      };
+      responseSchema: Record<string, unknown>;
+    }>(`/trace/api-contract?method=${encodeURIComponent(method)}&path=${encodeURIComponent(path)}`),
   tables: () => get<Array<{ id: string; database: string; service: string; name: string;
     columnCount: number; upstreamRequirementCount: number }>>("/trace/tables"),
   detail: (entityType: string, entityId: string) =>
