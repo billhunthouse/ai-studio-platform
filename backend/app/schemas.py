@@ -164,6 +164,18 @@ class AppRunRequest(BaseModel):
     device: str = "Pixel 7"
 
 
+class UiCompileRequest(BaseModel):
+    """批量编译功能测试用例为 UI 自动化脚本 IR。"""
+    caseIds: list[str] = Field(default_factory=list)  # 空=全部功能测试用例
+    overwrite: bool = False
+
+
+class UiRunRequest(BaseModel):
+    """执行已编译的 UI 自动化用例。"""
+    caseIds: list[str] = Field(default_factory=list)
+    delayMs: int | None = None  # 步骤间延时，默认 300ms
+
+
 class ToolRun(BaseModel):
     params: dict[str, str] = Field(default_factory=dict)
 

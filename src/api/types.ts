@@ -247,6 +247,10 @@ export interface UiScript {
   content: string;
   updatedAt: string;
   status: string;
+  /** UI 自动化：关联的测试用例与编译后的关键字 IR */
+  caseId?: string;
+  caseTitle?: string;
+  ir?: Record<string, unknown>;
 }
 
 export interface RecorderStep {

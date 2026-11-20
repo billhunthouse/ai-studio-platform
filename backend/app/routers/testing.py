@@ -31,7 +31,7 @@ from ..response import ok
 from ..schemas import (
     AgentCaseGenerateRequest, ApiDefCreate, ApiSampleRequest, ApiSend, AppRunRequest, CaseRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
     ImportYaml, RecorderStepIn, ReviewDecision, ReviewSubmit, RunRequest, ScriptCreate, ScriptUpdate, SplitConfirm,
-    SuiteCreate, TestCaseCreate, TestCaseUpdate, ToolRun, YamlSave, RequirementCreate, RequirementUpdate,
+    SuiteCreate, TestCaseCreate, TestCaseUpdate,     ToolRun, YamlSave, RequirementCreate, RequirementUpdate, UiCompileRequest, UiRunRequest,
 )
 from ..store import store
 from ..trace_models import TraceApi
@@ -1095,6 +1095,103 @@ def run_ui_script(body: RunRequest, pid: str = Depends(project_editor_scope)) ->
 @router.get("/ui/recorder")
 def list_recorder_steps(pid: str = Depends(project_scope)) -> dict[str, Any]:
     return ok(store.all("recorderSteps", pid))
+
+
+# ---------------- UI 自动化：编译 → 复用脚本 → 共享浏览器池执行 ----------------
+def _all_functional_cases(pid: str) -> list[dict[str, Any]]:
+    return [
+        c for c in store.all("testCases", pid)
+        if (c.get("caseType") or ("api" if c.get("relatedApi") else "functional")) == "functional"
+    ]
+
+
+@router.post("/ui/compile")
+def compile_ui_cases(body: UiCompileRequest, pid: str = Depends(project_scope)) -> dict[str, Any]:
+    """把功能测试用例编译成关键字 IR 与可复用 Playwright 脚本，落库到 uiScripts。"""
+    from ..ui_step_compiler import compile_batch, to_playwright_script
+    cases = _all_functional_cases(pid)
+    if body.caseIds:
+        wanted = set(body.caseIds)
+        cases = [c for c in cases if c.get("id") in wanted]
+    if not cases:
+        raise HTTPException(404, "没有可编译的功能测试用例")
+
+    result = compile_batch(cases)
+    existing = {s.get("caseId") for s in store.all("uiScripts", pid) if s.get("caseId")}
+    created = 0
+    for ir_case in result["compiled"]:
+        if ir_case["caseId"] in existing and not body.overwrite:
+            continue
+        script = to_playwright_script(ir_case)
+        doc = {
+            "id": f"US-{ir_case['caseId']}", "projectId": pid,
+            "caseId": ir_case["caseId"], "caseTitle": ir_case["caseTitle"],
+            "name": ir_case["caseTitle"][:80], "framework": "Playwright · 关键字驱动",
+            "content": script, "ir": ir_case,
+            "status": "启用" if ir_case["summary"]["ready"]
+                      else ("部分可执行" if ir_case["summary"]["uiRunnable"] else "待补全"),
+            "updatedAt": now_label(),
+        }
+        store.put("uiScripts", doc["id"], doc)
+        created += 1
+    return ok({
+        "stats": result["stats"], "created": created,
+        "skipped": len(result["compiled"]) - created,
+        "details": [
+            {"caseId": c["caseId"], "title": c["caseTitle"], **c["summary"]}
+            for c in result["compiled"]
+        ],
+    })
+
+
+@router.get("/ui/compile/{case_id}")
+def get_compiled_case(case_id: str, pid: str = Depends(project_scope)) -> dict[str, Any]:
+    """查看单条用例的编译结果（IR + 可复用脚本）。"""
+    doc = store.get("uiScripts", f"US-{case_id}", pid)
+    if not doc:
+        raise HTTPException(404, "该用例尚未编译，请先执行编译")
+    return ok(doc)
+
+
+@router.post("/ui/run-cases")
+def run_ui_cases(body: UiRunRequest, pid: str = Depends(project_editor_scope)) -> dict[str, Any]:
+    """用共享浏览器池真实执行编译后的 UI 自动化用例（步骤间 300ms 节流）。"""
+    from ..ui_executor import run_compiled
+    scripts = [s for s in store.all("uiScripts", pid) if s.get("caseId") and s.get("ir")]
+    if body.caseIds:
+        wanted = set(body.caseIds)
+        scripts = [s for s in scripts if s.get("caseId") in wanted]
+    if not scripts:
+        raise HTTPException(404, "没有已编译的 UI 自动化脚本，请先编译")
+
+    results = []
+    for s in scripts:
+        report = run_compiled(s["ir"], delay_ms=body.delayMs or 300)
+        report["caseTitle"] = s.get("caseTitle", "")
+        results.append(report)
+        run = {
+            "id": uid("UR"), "projectId": pid, "script": s.get("name", ""),
+            "caseId": s.get("caseId", ""), "browser": "Chromium(shared-pool)",
+            "result": "成功" if report["verdict"] == "通过" else report["verdict"],
+            "verdict": report["verdict"], "steps": report["steps"],
+            "screenshot": report.get("screenshot", ""),
+            "duration": f"{report['durationMs']}ms", "time": now_label(),
+        }
+        store.put("uiRuns", run["id"], run)
+
+    return ok({
+        "total": len(results), "passed": sum(1 for r in results if r["verdict"] == "通过"),
+        "failed": sum(1 for r in results if r["verdict"] == "失败"),
+        "partial": sum(1 for r in results if r["verdict"] == "部分可执行"),
+        "results": results,
+    })
+
+
+@router.get("/ui/pool-status")
+def ui_pool_status(_: str = Depends(project_scope)) -> dict[str, Any]:
+    """查看共享浏览器池资源状态（架构可观测性）。"""
+    from ..ui_executor import POOL
+    return ok(POOL.status())
 
 
 @router.post("/ui/recorder")

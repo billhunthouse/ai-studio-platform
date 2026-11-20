@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { testcasesApi } from "@/api";
+import { testcasesApi, webuiApi } from "@/api";
 import type { CaseRunReport, TestCase } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
@@ -41,6 +41,8 @@ export function CaseDetail() {
   const [manualVerdict, setManualVerdict] = useState<"通过" | "失败" | "阻塞" | null>(null);
   const [manualNote, setManualNote] = useState("");
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
+  const [uiReport, setUiReport] = useState<{ verdict: string; steps: Array<{ index: number; raw: string; keyword: string; status: string; detail: string }> } | null>(null);
+  const [uiBusy, setUiBusy] = useState(false);
 
   if (!case_) return <Card><div className="py-16 text-center text-xs text-ink-400">用例不存在或已删除</div></Card>;
   const c = case_;
@@ -86,6 +88,26 @@ export function CaseDetail() {
       toast(e instanceof Error ? e.message : "运行失败");
     } finally {
       setRunning(false);
+    }
+  };
+
+  /** 功能测试用例：编译为 Playwright 脚本并用共享浏览器池真实执行（步骤间 300ms） */
+  const runUi = async () => {
+    setUiBusy(true);
+    setUiReport(null);
+    try {
+      await webuiApi.compile({ caseIds: [c.id] });
+      const r = await webuiApi.runCases({ caseIds: [c.id], delayMs: 300 });
+      const one = r.results[0];
+      if (one) {
+        setUiReport({ verdict: one.verdict, steps: one.steps });
+        setData({ ...c, lastRun: { at: new Date().toLocaleString("zh-CN", { hour12: false }).slice(0, 16), mode: "ui", verdict: one.verdict } });
+        toast(`Playwright 执行完成：${one.verdict}`);
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "UI 自动化执行失败");
+    } finally {
+      setUiBusy(false);
     }
   };
 
@@ -235,6 +257,33 @@ export function CaseDetail() {
             </div>
           ) : (
             <div className="space-y-3 text-xs">
+              <div className="rounded-lg border border-brand-100 bg-brand-50/40 px-3 py-2">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-brand-700">Playwright UI 自动化</span>
+                  <Btn v="secondary" size="sm" onClick={runUi} disabled={uiBusy}>
+                    {uiBusy ? "执行中…" : "编译并自动执行"}
+                  </Btn>
+                </div>
+                <p className="text-[10px] leading-4 text-ink-500">
+                  自动把中文步骤编译为关键字脚本，用共享浏览器池在尚品汇（127.0.0.1:5174）上真实执行，步骤间延时 300ms。
+                  脚本可复用、可导出，在「Web UI 自动化 → 用例脚本」中编辑。
+                </p>
+                {uiReport && (
+                  <div className="mt-2 rounded bg-white px-2 py-1.5">
+                    <div className="mb-1 text-[11px]">判定：<Tag t={uiReport.verdict} c={uiReport.verdict === "通过" ? "green" : "amber"} dot={false} /></div>
+                    {uiReport.steps.map((s) => (
+                      <div key={s.index} className="flex gap-2 py-0.5 text-[10px]">
+                        <span className="font-mono text-ink-400">{s.keyword}</span>
+                        <span className="min-w-0 flex-1 truncate">{s.raw}</span>
+                        <span className={s.status === "passed" ? "text-green-600" : s.status === "failed" ? "text-red-600" : "text-amber-600"}>
+                          {s.status === "passed" ? "通过" : s.status === "failed" ? "失败" : "待补全"}
+                          {s.detail ? ` · ${s.detail}` : ""}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <p className="text-[11px] leading-5 text-ink-500">功能测试用例：请按步骤在系统页面上人工操作，逐项确认后记录执行结论。</p>
               <ol className="space-y-1.5">
                 {c.steps.map((s, i) => (
