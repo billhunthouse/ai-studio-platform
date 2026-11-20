@@ -252,6 +252,16 @@ def parse_entity(path: Path, repo: Path) -> TableFact | None:
 
     if not columns:
         return None
+    # 精确类型以真实业务库为准（Java 实体无长度信息，仅作兜底）；重扫不退化
+    try:
+        from agents.field_glossary import REAL_DB_DSN, real_column_types
+        types = real_column_types(schema, table_name)
+        if types:
+            for col in columns:
+                if col["name"] in types:
+                    col["type"] = types[col["name"]]
+    except Exception:
+        pass  # 真实库不可用时保留 Java 推断类型
     return TableFact(schema=schema, name=table_name, service=service, columns=columns,
                      source_file=str(path.relative_to(repo)), entity_class=entity_class,
                      module=module)

@@ -19,6 +19,53 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+# ---------------------------------------------------------------- 真实库精确类型
+
+REAL_DB_DSN = "postgresql://shang:shang@127.0.0.1:55434/shang"
+
+
+def real_column_types(schema: str, table: str) -> dict[str, str]:
+    """从真实业务库读列的精确 PostgreSQL 类型（含长度/精度），用于重扫时覆盖 Java 推断。
+
+    Java 实体字段只有 String/Integer 等粗粒度类型，扫描器只能给出 varchar(255) 默认值；
+    真实库 information_schema 才是 DDL+所有 ALTER 后的最终状态（如 phone varchar(20)）。
+    库不可达时返回空字典，调用方保留 Java 推断值。
+    """
+    try:
+        import psycopg
+        with psycopg.connect(REAL_DB_DSN, connect_timeout=2) as conn:
+            rows = conn.execute("""
+                SELECT column_name, data_type, character_maximum_length,
+                       numeric_precision, numeric_scale
+                FROM information_schema.columns
+                WHERE table_schema = %s AND table_name = %s
+            """, (schema, table)).fetchall()
+    except Exception:
+        return {}
+
+    out: dict[str, str] = {}
+    for name, dtype, maxlen, prec, scale in rows:
+        dt = dtype.lower()
+        if dt == "character varying":
+            t = f"varchar({maxlen})" if maxlen else "varchar"
+        elif dt == "timestamp with time zone":
+            t = "timestamptz"
+        elif dt == "double precision":
+            t = "float8"
+        elif dt == "numeric":
+            t = f"numeric({prec},{scale})" if prec else "numeric"
+        elif dt == "integer":
+            t = "int4"
+        elif dt == "smallint":
+            t = "int2"
+        elif dt == "boolean":
+            t = "bool"
+        else:
+            t = dt
+        out[name] = t
+    return out
+
+
 # ---------------------------------------------------------------- DDL 真实注释
 
 SHANG_REPO = Path("/Users/imac/Desktop/shang-pivot/backend")
