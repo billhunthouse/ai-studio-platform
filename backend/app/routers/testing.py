@@ -24,15 +24,17 @@ from ..excel import export_testcases, import_testcases
 from ..llm import LLMError, LLMUnavailable, extract_headings, generate_testcases, heading_alignment, local_split_requirements, relevance_coverage, split_requirements
 from ..logic import generate_artifact, next_numeric_id, now_label, parse_openapi, uid
 from ..case_engine_local import STRATEGY_CN, generate as local_generate
+from ..case_runner import run_case as run_api_case
 from ..models import Project, Requirement, RequirementFile, User
 from ..parsing import SUPPORTED_EXTENSIONS, extract_text, safe_filename
 from ..response import ok
 from ..schemas import (
-    AgentCaseGenerateRequest, ApiDefCreate, ApiSend, AppRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
+    AgentCaseGenerateRequest, ApiDefCreate, ApiSend, AppRunRequest, CaseRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
     ImportYaml, RecorderStepIn, ReviewDecision, ReviewSubmit, RunRequest, ScriptCreate, ScriptUpdate, SplitConfirm,
     SuiteCreate, TestCaseCreate, TestCaseUpdate, ToolRun, YamlSave, RequirementCreate, RequirementUpdate,
 )
 from ..store import store
+from ..trace_models import TraceApi
 
 router = APIRouter()
 
@@ -524,6 +526,50 @@ def delete_testcase(case_id: str, pid: str = Depends(project_editor_scope)) -> d
     must_doc("testCases", case_id, pid)
     store.delete("testCases", case_id)
     return ok(None)
+
+
+@router.post("/testcases/{case_id}/run")
+def run_testcase(
+    case_id: str,
+    body: CaseRunRequest,
+    pid: str = Depends(project_scope),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """运行用例。API 用例打到真实 shang-pivot 后端执行；功能用例记录人工执行结果。"""
+    case = must_doc("testCases", case_id, pid)
+    case_type = case.get("caseType") or ("api" if case.get("relatedApi") else "functional")
+
+    def schema_lookup(path: str, method: str) -> dict[str, Any] | None:
+        row = db.scalar(
+            select(TraceApi).where(
+                TraceApi.project_id == pid, TraceApi.path == path, TraceApi.method == method)
+        )
+        return (row.request_schema or None) if row else None
+
+    if case_type == "functional":
+        # 功能测试用例：人工按步骤执行，记录结论
+        if not body.manualVerdict:
+            return ok({"mode": "manual", "case": case,
+                       "message": "功能测试用例需人工按步骤执行，请在执行面板记录结果"})
+        case["lastRun"] = {
+            "at": now_label(), "mode": "manual", "verdict": body.manualVerdict,
+            "note": body.manualNote or "", "executor": user.name,
+        }
+        store.put("testCases", case_id, case)
+        return ok({"mode": "manual", "lastRun": case["lastRun"], "case": case})
+
+    # API 测试用例：真实执行
+    report = run_api_case(case, schema_lookup=schema_lookup, force=body.force)
+    report["mode"] = "api"
+    case["lastRun"] = {
+        "at": now_label(), "mode": "api", "verdict": report.get("verdict", ""),
+        "detail": report.get("detail", ""),
+        "http": (report.get("actual") or {}).get("http"),
+    }
+    store.put("testCases", case_id, case)
+    report["lastRun"] = case["lastRun"]
+    return ok(report)
 
 
 @router.get("/testcases/engines")

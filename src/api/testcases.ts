@@ -1,5 +1,5 @@
 import { del, download, get, post, put, upload } from "./http";
-import type { CaseReviewItem, TestCase } from "./types";
+import type { CaseReviewItem, CaseRunReport, TestCase } from "./types";
 
 export interface ImportResult {
   created: number;
@@ -33,6 +33,9 @@ export const testcasesApi = {
   agentGenerate: (input: { requirementId?: string; dryRun?: boolean; overwrite?: boolean }) =>
     post<{ message: string; output: string; totalCases: number }>("/testcases/agent/generate", input),
   submitReview: (cases: TestCase[]) => post<number>("/testcases/review", { cases }),
+  /** 运行用例：API 用例真实执行；功能用例传 manualVerdict 记录人工结果 */
+  run: (id: string, opts?: { force?: boolean; manualVerdict?: "通过" | "失败" | "阻塞"; manualNote?: string }) =>
+    post<CaseRunReport>(`/testcases/${encodeURIComponent(id)}/run`, opts ?? {}),
   reviewQueue: () => get<CaseReviewItem[]>("/testcases/reviews"),
   review: (caseId: string, action: "通过" | "驳回", comment: string) =>
     post<CaseReviewItem[]>(`/testcases/reviews/${encodeURIComponent(caseId)}`, { action, comment }),

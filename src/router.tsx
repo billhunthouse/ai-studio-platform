@@ -29,6 +29,7 @@ const RequirementDetail = page(() => import("@/pages/project/RequirementDetail")
 const TraceCenter = page(() => import("@/pages/project/TraceCenter"), "TraceCenter");
 const TraceEntity = page(() => import("@/pages/project/TraceEntity"), "TraceEntity");
 const CaseList = page(() => import("@/pages/project/CaseList"), "CaseList");
+const CaseDetail = page(() => import("@/pages/project/CaseDetail"), "CaseDetail");
 const CaseGenerate = page(() => import("@/pages/project/CaseGenerate"), "CaseGenerate");
 const CaseReview = page(() => import("@/pages/project/CaseReview"), "CaseReview");
 const ApiManage = page(() => import("@/pages/project/ApiManage"), "ApiManage");
@@ -97,6 +98,7 @@ export function AppRouter() {
           <Route path="trace" element={<TraceCenter />} />
           <Route path="trace/entity" element={<TraceEntity />} />
           <Route path="testcases" element={<CaseList />} />
+          <Route path="testcases/:caseId" element={<CaseDetail />} />
           <Route path="testcases/generate" element={<CaseGenerate />} />
           <Route path="testcases/review" element={<CaseReview />} />
           <Route path="api" element={<ApiManage />} />

@@ -31,6 +31,12 @@ class TestCaseCreate(BaseModel):
     expected: str = ""
     source: str = "手工"
     owner: str = "张伟"
+    # 测试类型：api=API 测试用例（可自动运行）；functional=功能测试用例（人工执行）
+    caseType: Literal["api", "functional"] | None = None
+    designMethod: str | None = None
+    relatedApi: str | None = None
+    testData: str | None = None
+    dbCheck: str | None = None
 
 
 class TestCaseUpdate(BaseModel):
@@ -45,6 +51,19 @@ class TestCaseUpdate(BaseModel):
     expected: str | None = None
     source: str | None = None
     owner: str | None = None
+    caseType: Literal["api", "functional"] | None = None
+    designMethod: str | None = None
+    relatedApi: str | None = None
+    testData: str | None = None
+    dbCheck: str | None = None
+
+
+class CaseRunRequest(BaseModel):
+    """用例运行请求：force 用于放行删除类写操作。"""
+    force: bool = False
+    # 人工执行结果（功能测试用例）：verdict ∈ 通过/失败/阻塞
+    manualVerdict: Literal["通过", "失败", "阻塞"] | None = None
+    manualNote: str | None = None
 
 
 class GenerateCasesRequest(BaseModel):
