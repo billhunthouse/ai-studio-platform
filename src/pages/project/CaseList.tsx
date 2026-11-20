@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { testcasesApi } from "@/api";
 import type { TestCase } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
@@ -12,7 +13,10 @@ import { DetailDrawer } from "@/components/business";
 const EMPTY = { title: "", module: "会员", type: "正向", priority: "P1" as TestCase["priority"], precondition: "", steps: "", expected: "" };
 
 export function CaseList() {
-  const { data, setData, reload, loading } = useAsync(() => testcasesApi.list(), [], [] as TestCase[]);
+  const [params] = useSearchParams();
+  const reqFilter = params.get("requirement") ?? "";
+  const { data, setData, reload, loading } = useAsync(
+    () => testcasesApi.list(reqFilter || undefined), [reqFilter], [] as TestCase[]);
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("全部状态");
@@ -78,6 +82,12 @@ export function CaseList() {
     <>
       <Card>
         <Toolbar placeholder="搜索用例标题/编号" onSearch={setQuery} onStatusChange={setStatus} statusOptions={["全部状态", "通过", "待评审", "草稿"]}>
+          {reqFilter && (
+            <span className="mr-1 rounded-md bg-brand-50 px-2 py-1 font-mono text-[10px] text-brand-700 ring-1 ring-brand-100"
+              title="按需求过滤中">
+              需求 {reqFilter}
+            </span>
+          )}
           <Btn v="secondary" size="sm" onClick={exportExcel}>导出 Excel</Btn>
           <Btn v="secondary" size="sm" onClick={() => fileRef.current?.click()}>导入 Excel</Btn>
           <input ref={fileRef} type="file" accept=".xlsx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importExcel(file); e.target.value = ""; }} />
@@ -134,13 +144,22 @@ export function CaseList() {
           { label: "来源", value: detail.source },
           { label: "负责人", value: detail.owner },
           { label: "更新时间", value: detail.updatedAt },
+          ...(detail.designMethod ? [{ label: "设计方法", value: detail.designMethod }] : []),
+          ...(detail.relatedApi ? [{ label: "被测接口", value: <span className="font-mono text-[10px]">{detail.relatedApi}</span> }] : []),
         ] : []}
       >
         {detail && (
           <div className="text-xs space-y-3">
             <div><div className="text-ink-500 mb-1">前置条件</div><div>{detail.precondition || "无"}</div></div>
+            {detail.testData && <div><div className="text-ink-500 mb-1">测试数据</div><div>{detail.testData}</div></div>}
             <div><div className="text-ink-500 mb-1">测试步骤</div><ol className="list-decimal pl-4 space-y-1">{detail.steps.map((s, i) => <li key={i}>{s}</li>)}</ol></div>
             <div><div className="text-ink-500 mb-1">预期结果</div><div>{detail.expected}</div></div>
+            {detail.dbCheck && (
+              <div className="rounded-lg border border-brand-100 bg-brand-50/50 px-3 py-2">
+                <div className="text-brand-700 mb-1 text-[11px] font-semibold">数据库校验点</div>
+                <div className="font-mono text-[11px] text-brand-800">{detail.dbCheck}</div>
+              </div>
+            )}
           </div>
         )}
       </DetailDrawer>

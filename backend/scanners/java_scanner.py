@@ -36,6 +36,12 @@ from typing import Any
 
 import psycopg
 
+try:  # 字段语义库兜底：实体无 @Schema 时按 DDL 注释/知识字典补说明（重扫不丢）
+    from agents.field_glossary import comment_for as glossary_comment_for
+except ImportError:  # 独立运行于 backend 之外时降级为空
+    def glossary_comment_for(_table: str, _col: str):
+        return None
+
 # ---------------------------------------------------------------- 常量映射
 
 MODULE_SERVICE = {
@@ -232,6 +238,10 @@ def parse_entity(path: Path, repo: Path) -> TableFact | None:
         if any(c["name"] == col_name for c in columns):
             continue
         comment = attr(anns, "Schema", "description") or ""
+        if not comment:
+            glossed = glossary_comment_for(table_name, col_name)
+            if glossed:
+                comment = glossed[0]
         columns.append({
             "name": col_name,
             "type": sql_type(java_type, anns),

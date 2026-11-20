@@ -18,7 +18,7 @@ export function RequirementDetail() {
     () => req ? requirementsApi.children(req.id) : Promise.resolve([]), [req?.id], [] as Requirement[]);
   const { data: prd, reload: reloadPrd } = useAsync<PrdResponse | null>(
     () => prdApi.get(rid).then((r) => r ?? null).catch(() => null), [rid], null);
-  const { data: relatedCases } = useAsync<TestCase[]>(
+  const { data: relatedCases, reload: reloadCases } = useAsync<TestCase[]>(
     () => testcasesApi.list(rid).catch(() => []), [rid], []);
   const { projectId, toast } = useApp();
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export function RequirementDetail() {
   const [reqOpen, setReqOpen] = useState(false);
   const [preview, setPreview] = useState<{ filename: string; text: string } | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [agentRunning, setAgentRunning] = useState(false);
   const [reqForm, setReqForm] = useState({
     title: "", priority: "P1" as Requirement["priority"], owner: "", status: "", description: "",
   });
@@ -82,6 +83,20 @@ export function RequirementDetail() {
       toast(e instanceof Error ? e.message : "重新生成失败");
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  /** 资深测试工程师 AGENT：需求无用例时一键生成专业用例 */
+  const runCaseAgent = async () => {
+    setAgentRunning(true);
+    try {
+      const r = await testcasesApi.agentGenerate({ requirementId: req.id });
+      await reloadCases();
+      toast(r.message || "测试工程师 AGENT 已完成生成");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "AGENT 生成失败");
+    } finally {
+      setAgentRunning(false);
     }
   };
 
@@ -175,7 +190,16 @@ export function RequirementDetail() {
               ))}
             </div>
           ) : (
-            <div className="text-[10px] text-ink-400">暂无关联用例</div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50/40 px-2.5 py-2 text-[10px] leading-4 text-amber-700">
+              暂无用例。可由资深测试工程师 AGENT 按 PRD、接口契约与状态机，
+              用等价类 / 边界值 / 状态迁移等七类方法生成专业用例。
+            </div>
+          )}
+          {relatedCases.length === 0 && (
+            <Btn size="sm" className="mt-2 w-full" loading={agentRunning} onClick={runCaseAgent}>
+              <Icon name="sparkles" size={13} className={agentRunning ? "animate-pulse" : ""} />
+              资深测试工程师 AGENT 生成用例
+            </Btn>
           )}
           <Btn v="secondary" size="sm" className="mt-2 w-full"
             onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("需求文档")}`)}>
@@ -205,6 +229,7 @@ export function RequirementDetail() {
             domain={prd.domain}
             coverage={prd.coverage}
             generatedAt={prd.generatedAt || prd.doc.generatedAt}
+            projectId={projectId}
           />
         ) : (
           <Card>

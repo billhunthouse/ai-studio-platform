@@ -34,9 +34,11 @@ export interface PrdDoc {
     coverage: {
       coveredLayers: string[]; missingLayers: string[];
       coverageCount: number; total: number; note: string;
+      /** 各层覆盖实体（id/name），供前端跳转到追溯详情页 */
+      layerEntities?: Record<string, Array<{ id: string; name: string }>>;
     };
     codeEvidence: Array<{
-      entryPoint: string; filePath: string; commit: string; service: string;
+      id?: string; entryPoint: string; filePath: string; commit: string; service: string;
     }>;
     flows: string[];
   };

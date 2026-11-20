@@ -231,10 +231,20 @@ def build_prd(req_id: str, req: dict[str, Any], evid: dict[str, list[dict[str, A
     ac = [{"id": f"AC-{i + 1:02d}", "text": text, "checked": False}
           for i, text in enumerate(dom.get("ac", []))]
 
-    # 章节 9 覆盖与缺口
+    # 章节 9 覆盖与缺口：layerEntities 供前端点击跳转到追溯实体详情页
+    def _entity_label(item: dict[str, Any], layer: str) -> dict[str, str]:
+        name = item.get("name") or item.get("path") or item.get("id")
+        if layer == "api" and item.get("method"):
+            name = f"{item['method']} {item.get('path')}"
+        return {"id": item["id"], "name": str(name)}
+
+    layer_entities = {
+        L: [_entity_label(it, L) for it in evid.get(L, [])[:12]] for L in LAYERS
+    }
     coverage_sec = {
         "coveredLayers": covered, "missingLayers": missing,
         "coverageCount": coverage, "total": len(LAYERS),
+        "layerEntities": layer_entities,
         "note": dom.get("no_link_reason", "") or
                 ("四层链路完整，需求→页面→接口→代码/表均有可达实体"
                  if not missing else f"缺少 {('/'.join(LAYER_CN[m] for m in missing))} 链路"),
@@ -242,7 +252,7 @@ def build_prd(req_id: str, req: dict[str, Any], evid: dict[str, list[dict[str, A
 
     # 章节 10 代码证据
     code_evidence = [
-        {"entryPoint": c.get("name", ""), "filePath": c.get("file_path", ""),
+        {"id": c.get("id", ""), "entryPoint": c.get("name", ""), "filePath": c.get("file_path", ""),
          "commit": c.get("commit", ""), "service": c.get("service", "")}
         for c in codes
     ]

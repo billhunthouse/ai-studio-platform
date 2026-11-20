@@ -16,7 +16,7 @@ export const testcasesApi = {
     put<TestCase>(`/testcases/${encodeURIComponent(id)}`, body),
   remove: (id: string) => del<null>(`/testcases/${encodeURIComponent(id)}`),
   engines: () => get<{
-    engines: Array<{ value: "internal" | "external"; label: string; available: boolean; desc: string }>;
+    engines: Array<{ value: "internal" | "external" | "agent"; label: string; available: boolean; desc: string }>;
     externalReady: boolean;
     model: string;
   }>("/testcases/engines"),
@@ -29,6 +29,9 @@ export const testcasesApi = {
     model?: string;
     relatedRequirementIds?: string[];
   }) => post<TestCase[]>("/testcases/generate", input),
+  /** 资深测试工程师 AGENT：方法论驱动的专业用例生成（requirementId 空为全量补缺） */
+  agentGenerate: (input: { requirementId?: string; dryRun?: boolean; overwrite?: boolean }) =>
+    post<{ message: string; output: string; totalCases: number }>("/testcases/agent/generate", input),
   submitReview: (cases: TestCase[]) => post<number>("/testcases/review", { cases }),
   reviewQueue: () => get<CaseReviewItem[]>("/testcases/reviews"),
   review: (caseId: string, action: "通过" | "驳回", comment: string) =>

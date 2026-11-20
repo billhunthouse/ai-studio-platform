@@ -10,7 +10,13 @@ import { cx } from "@/lib/cx";
 
 const STRATEGIES = ["正向流程", "边界值", "异常场景", "安全"];
 
-type Engine = "internal" | "external";
+type Engine = "internal" | "external" | "agent";
+
+const ENGINE_LABEL: Record<Engine, string> = {
+  internal: "内部逻辑",
+  external: "外部AI",
+  agent: "测试工程师AGENT",
+};
 
 export function CaseGenerate() {
   const [params] = useSearchParams();
@@ -58,8 +64,21 @@ export function CaseGenerate() {
   const gen = async () => {
     setBusy(true);
     setOut([]);
-    addTask(`AI 生成用例 · ${engine === "internal" ? "内部逻辑" : "外部AI"}`);
+    addTask(`AI 生成用例 · ${ENGINE_LABEL[engine]}`);
     try {
+      // 资深测试工程师 AGENT：方法论驱动，直接落库为待评审用例
+      if (engine === "agent") {
+        if (!relatedIds[0]) {
+          setBusy(false);
+          toast("AGENT 引擎需要选择一个主需求");
+          return;
+        }
+        const r = await testcasesApi.agentGenerate({ requirementId: relatedIds[0] });
+        setBusy(false);
+        toast(r.message || "测试工程师 AGENT 已完成生成");
+        navigate(`/project/${projectId}/testcases?requirement=${encodeURIComponent(relatedIds[0])}`);
+        return;
+      }
       const items = await testcasesApi.generate({
         source: src,
         requirementId: relatedIds[0],
@@ -122,10 +141,11 @@ export function CaseGenerate() {
         <div className="space-y-4 text-xs">
           {/* 引擎选择 */}
           <Field label="生成引擎" as="div">
-            <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="grid grid-cols-3 gap-2 mt-1">
               {(engines?.engines ?? [
                 { value: "internal" as Engine, label: "系统内部逻辑", available: true, desc: "本地生成" },
                 { value: "external" as Engine, label: "外部 AI API", available: false, desc: "未配置" },
+                { value: "agent" as Engine, label: "测试工程师 AGENT", available: true, desc: "方法论驱动" },
               ]).map((e) => (
                 <button key={e.value} disabled={!e.available}
                   onClick={() => setEngine(e.value as Engine)}
@@ -184,15 +204,26 @@ export function CaseGenerate() {
             <div className="mt-1 text-[10px] text-ink-400">第一条作为主需求，其余作为关联上下文，生成的用例会记录全部关联。</div>
           </Field>
 
-          <Field label="生成策略" as="div">
-            <div className="flex flex-wrap gap-3 mt-1">
-              {STRATEGIES.map((s) => (
-                <label key={s} className="flex gap-1 items-center">
-                  <input type="checkbox" checked={strategies.includes(s)} onChange={() => toggleStrategy(s)} />{s}
-                </label>
-              ))}
+          {engine !== "agent" && (
+            <Field label="生成策略" as="div">
+              <div className="flex flex-wrap gap-3 mt-1">
+                {STRATEGIES.map((s) => (
+                  <label key={s} className="flex gap-1 items-center">
+                    <input type="checkbox" checked={strategies.includes(s)} onChange={() => toggleStrategy(s)} />{s}
+                  </label>
+                ))}
+              </div>
+            </Field>
+          )}
+
+          {engine === "agent" && (
+            <div className="rounded-lg border border-brand-200 bg-brand-50/60 px-3 py-2 text-[10px] leading-5 text-brand-800">
+              <b>资深测试工程师 AGENT</b>：读取 PRD 与追溯链上的真实接口契约、状态机、
+              负面清单，按等价类 / 边界值 / 状态迁移 / 并发幂等 / 安全 / 数据一致性
+              七类设计方法生成专业用例（每条标注设计方法与被测接口），
+              生成后直接进入待评审。
             </div>
-          </Field>
+          )}
 
           {engine === "external" && (
             <>
@@ -208,8 +239,8 @@ export function CaseGenerate() {
             </div>
           )}
 
-          <Btn onClick={gen} disabled={busy || strategies.length === 0 || relatedIds.length === 0} className="w-full">
-            {busy ? "生成中…" : "开始生成"}
+          <Btn onClick={gen} disabled={busy || (engine !== "agent" && strategies.length === 0) || relatedIds.length === 0} className="w-full">
+            {busy ? "生成中…" : engine === "agent" ? "AGENT 开始生成" : "开始生成"}
           </Btn>
           <div className="text-[11px] text-ink-500 leading-relaxed">
             生成结果会推送到右下角任务悬浮窗，可在「任务与报告」查看历史。提交评审后用例入库并保留需求关联。

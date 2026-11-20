@@ -59,6 +59,13 @@ class GenerateCasesRequest(BaseModel):
     relatedRequirementIds: list[str] = Field(default_factory=list)
 
 
+class AgentCaseGenerateRequest(BaseModel):
+    """测试工程师 AGENT 生成请求：requirementId 为空时为全量（补无用例的需求）。"""
+    requirementId: str | None = None
+    dryRun: bool = False
+    overwrite: bool = False
+
+
 class ReviewSubmit(BaseModel):
     cases: list[dict[str, Any]] = Field(default_factory=list)
 

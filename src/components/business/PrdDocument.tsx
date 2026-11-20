@@ -1,9 +1,11 @@
 /** 产品文档 AGENT 还原出的 PRD 展示组件。 */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { PrdDoc } from "@/api/prd";
 import { Btn, Card, Icon, Tag, Table } from "@/components/ui";
 import { cx } from "@/lib/cx";
+import { traceHref } from "@/lib/traceLinks";
 
 const LAYER_CN: Record<string, string> = {
   page: "功能页面", api: "接口", code_artifact: "实现代码", table: "数据表",
@@ -35,12 +37,19 @@ function Evidence({ text }: { text: string }) {
   return <span className="ml-2 text-[10px] text-ink-400" title={text}>〔{text}〕</span>;
 }
 
-export function PrdDocument({ doc, domain, coverage, generatedAt }: {
-  doc: PrdDoc; domain: string; coverage: number; generatedAt: string;
+export function PrdDocument({ doc, domain, coverage, generatedAt, projectId }: {
+  doc: PrdDoc; domain: string; coverage: number; generatedAt: string; projectId?: string;
 }) {
   const s = doc.sections;
+  const navigate = useNavigate();
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+  /** 跳转到追溯实体详情页（type/id 走查询参数）。 */
+  const goEntity = (type: string, id: string) => {
+    if (!projectId) return;
+    navigate(traceHref(type, id, projectId));
+  };
 
   return (
     <div className="space-y-3">
@@ -150,7 +159,15 @@ export function PrdDocument({ doc, domain, coverage, generatedAt }: {
               <div key={a.id} className="rounded-lg border border-line px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag t={a.method || "—"} c={a.method === "GET" ? "blue" : a.method === "DELETE" ? "red" : "green"} dot={false} />
-                  <code className="font-mono text-[11px] font-semibold text-ink-800">{a.path || a.id}</code>
+                  {projectId ? (
+                    <button onClick={() => goEntity("api", a.id)}
+                      title="跳转到接口详情（含调试入口）"
+                      className="font-mono text-[11px] font-semibold text-ink-800 underline decoration-brand-300 decoration-dotted underline-offset-2 hover:text-brand-600">
+                      {a.path || a.id}
+                    </button>
+                  ) : (
+                    <code className="font-mono text-[11px] font-semibold text-ink-800">{a.path || a.id}</code>
+                  )}
                   <span className="text-[11px] text-ink-500">{a.summary}</span>
                   <span className="ml-auto text-[10px] text-ink-400">{a.auth}</span>
                 </div>
@@ -186,11 +203,20 @@ export function PrdDocument({ doc, domain, coverage, generatedAt }: {
             {s.dataModel.map((t) => (
               <div key={t.id} className="rounded-lg border border-line">
                 <button onClick={() => setExpandedTable(expandedTable === t.id ? null : t.id)}
+                  onDoubleClick={() => goEntity("table", t.id)}
+                  title={projectId ? "展开字段 · 双击跳转表详情" : "展开字段"}
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-ink-50/40">
                   <Icon name="database" size={14} className="text-ink-400" />
-                  <code className="font-mono text-[11px] font-semibold text-ink-800">
-                    {t.schema}.{t.name}
-                  </code>
+                  {projectId ? (
+                    <code onClick={(e) => { e.stopPropagation(); goEntity("table", t.id); }}
+                      className="font-mono text-[11px] font-semibold text-ink-800 underline decoration-brand-300 decoration-dotted underline-offset-2 hover:text-brand-600">
+                      {t.schema}.{t.name}
+                    </code>
+                  ) : (
+                    <code className="font-mono text-[11px] font-semibold text-ink-800">
+                      {t.schema}.{t.name}
+                    </code>
+                  )}
                   <span className="text-[10px] text-ink-400">{t.columnCount} 字段</span>
                   {!!t.primaryKey && <Tag t="有主键" c="green" dot={false} />}
                   <Icon name={expandedTable === t.id ? "chevron-down" : "chevron-right"} size={12}
@@ -259,22 +285,54 @@ export function PrdDocument({ doc, domain, coverage, generatedAt }: {
         </div>
       </Section>
 
-      {/* 9 覆盖与缺口 */}
-      <Section no={9} title="覆盖与缺口" subtitle={`${coverage}/4 层`}>
+      {/* 9 覆盖与缺口：已覆盖层可点击跳转到对应追溯实体详情 */}
+      <Section no={9} title="覆盖与缺口" subtitle={`${coverage}/4 层 · 点击可跳转`}>
         <div className="flex flex-wrap gap-2">
           {["page", "api", "code_artifact", "table"].map((layer) => {
             const hit = s.coverage.coveredLayers.includes(layer);
-            return (
-              <div key={layer} className={cx("flex-1 rounded-lg border px-3 py-2.5",
-                hit ? "border-green-200 bg-green-50/40" : "border-amber-200 bg-amber-50/40")}>
-                <div className="text-[10px] text-ink-500">{LAYER_CN[layer]}</div>
+            const entities = (s.coverage.layerEntities?.[layer] ?? []).filter(Boolean);
+            const linkable = hit && projectId && entities.length > 0;
+            const body = (
+              <>
+                <div className="flex items-center gap-1 text-[10px] text-ink-500">
+                  {LAYER_CN[layer]}
+                  {hit && <span className="text-green-600">{entities.length || ""}</span>}
+                </div>
                 <div className={cx("mt-1 text-[12px] font-semibold", hit ? "text-green-700" : "text-amber-700")}>
                   {hit ? "已覆盖" : "缺失"}
                 </div>
+                {hit && entities.length > 1 && (
+                  <div className="mt-0.5 truncate text-[10px] text-ink-400" title={entities.map((e) => e.name).join("、")}>
+                    {entities.slice(0, 2).map((e) => e.name).join("、")} 等
+                  </div>
+                )}
+              </>
+            );
+            return linkable ? (
+              <button key={layer} onClick={() => goEntity(layer, entities[0].id)}
+                title={`跳转：${entities[0].name}`}
+                className={cx("flex-1 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                  "border-green-200 bg-green-50/40 hover:border-green-300 hover:bg-green-50")}>
+                {body}
+              </button>
+            ) : (
+              <div key={layer} className={cx("flex-1 rounded-lg border px-3 py-2.5",
+                hit ? "border-green-200 bg-green-50/40" : "border-amber-200 bg-amber-50/40")}>
+                {body}
               </div>
             );
           })}
         </div>
+        {s.coverage.coveredLayers.includes("page") && !!projectId && (s.coverage.layerEntities?.page ?? []).length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {s.coverage.layerEntities!.page.map((e) => (
+              <button key={e.id} onClick={() => goEntity("page", e.id)}
+                className="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-700 hover:bg-brand-100">
+                {e.name}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="mt-2 text-[11px] leading-5 text-ink-500">{s.coverage.note}</p>
       </Section>
 
@@ -285,7 +343,15 @@ export function PrdDocument({ doc, domain, coverage, generatedAt }: {
             {s.codeEvidence.map((c, i) => (
               <div key={i} className="rounded-lg border border-line px-3 py-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <code className="font-mono text-[11px] font-semibold text-brand-600">{c.entryPoint}</code>
+                  {projectId && c.id ? (
+                    <button onClick={() => goEntity("code_artifact", String(c.id))}
+                      title="跳转到代码实体详情"
+                      className="font-mono text-[11px] font-semibold text-brand-600 underline decoration-brand-300 decoration-dotted underline-offset-2 hover:text-brand-700">
+                      {c.entryPoint}
+                    </button>
+                  ) : (
+                    <code className="font-mono text-[11px] font-semibold text-brand-600">{c.entryPoint}</code>
+                  )}
                   {c.commit && <span className="font-mono text-[10px] text-ink-400">@{c.commit}</span>}
                   <span className="ml-auto text-[10px] text-ink-400">{c.service}</span>
                 </div>

@@ -28,7 +28,7 @@ from ..models import Project, Requirement, RequirementFile, User
 from ..parsing import SUPPORTED_EXTENSIONS, extract_text, safe_filename
 from ..response import ok
 from ..schemas import (
-    ApiDefCreate, ApiSend, AppRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
+    AgentCaseGenerateRequest, ApiDefCreate, ApiSend, AppRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
     ImportYaml, RecorderStepIn, ReviewDecision, ReviewSubmit, RunRequest, ScriptCreate, ScriptUpdate, SplitConfirm,
     SuiteCreate, TestCaseCreate, TestCaseUpdate, ToolRun, YamlSave, RequirementCreate, RequirementUpdate,
 )
@@ -544,9 +544,47 @@ def available_engines(_: User = Depends(get_current_user)) -> dict[str, Any]:
                 "desc": f"调用外部大模型（{settings.llm_model}）生成" if not placeholder
                         else "未配置有效的 LLM_API_KEY，当前不可用",
             },
+            {
+                "value": "agent", "label": "测试工程师 AGENT",
+                "available": True,
+                "desc": "资深测试工程师方法论驱动：等价类/边界值/状态迁移/并发幂等/安全/数据一致性七类设计，基于 PRD 与真实接口契约建模",
+            },
         ],
         "externalReady": not placeholder,
         "model": settings.llm_model,
+    })
+
+
+@router.post("/testcases/agent/generate")
+def agent_generate_cases(
+    body: AgentCaseGenerateRequest,
+    pid: str = Depends(project_editor_scope),
+) -> dict[str, Any]:
+    """测试工程师 AGENT：按方法论生成详细专业用例。
+
+    requirementId 为空时对全部无用例的需求批量生成；dryRun 只预览不落库。
+    设计说明见 docs/traceability/测试工程师AGENT-设计说明.md。
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    backend_dir = Path(__file__).resolve().parents[2]
+    cmd = [sys.executable, "-m", "agents.case_agent"]
+    if body.requirementId:
+        cmd += ["--only", body.requirementId]
+    if body.dryRun:
+        cmd += ["--dry-run"]
+    if body.overwrite:
+        cmd += ["--overwrite"]
+    proc = subprocess.run(cmd, cwd=backend_dir, capture_output=True, text=True, timeout=300)
+    if proc.returncode != 0:
+        raise HTTPException(500, f"测试工程师 AGENT 运行失败：{proc.stderr[-500:]}")
+    generated = len(store.all("testCases", pid))
+    return ok({
+        "message": "测试工程师 AGENT 已完成用例生成（状态=待评审）" if not body.dryRun else "预览完成（未落库）",
+        "output": proc.stdout[-1500:],
+        "totalCases": generated,
     })
 
 

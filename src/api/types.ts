@@ -142,6 +142,11 @@ export interface TestCase {
   requirementId?: string;
   relatedRequirementIds?: string[];
   relatedRequirementTitles?: string[];
+  /** 测试工程师 AGENT 扩展字段 */
+  designMethod?: string;
+  relatedApi?: string;
+  testData?: string;
+  dbCheck?: string;
 }
 
 export interface CaseComment {
