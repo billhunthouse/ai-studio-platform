@@ -50,6 +50,13 @@ class TestCaseUpdate(BaseModel):
 class GenerateCasesRequest(BaseModel):
     source: str = "需求文档"
     requirementId: str | None = None
+    # 双引擎：external=外部 AI API；internal=系统内部逻辑（基于 PRD+追溯链）
+    engine: Literal["external", "internal"] = "external"
+    strategies: list[str] = Field(default_factory=lambda: ["正向流程", "边界值", "异常场景"])
+    rag: bool = True
+    model: str | None = None
+    # 关联的其他需求 ID（生成用例时一并绑定，便于跨需求追溯）
+    relatedRequirementIds: list[str] = Field(default_factory=list)
 
 
 class ReviewSubmit(BaseModel):

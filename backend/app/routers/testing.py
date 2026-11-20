@@ -14,7 +14,7 @@ import httpx
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, project_editor_scope, project_reviewer_scope, project_scope
@@ -23,6 +23,7 @@ from ..db import get_db
 from ..excel import export_testcases, import_testcases
 from ..llm import LLMError, LLMUnavailable, extract_headings, generate_testcases, heading_alignment, local_split_requirements, relevance_coverage, split_requirements
 from ..logic import generate_artifact, next_numeric_id, now_label, parse_openapi, uid
+from ..case_engine_local import STRATEGY_CN, generate as local_generate
 from ..models import Project, Requirement, RequirementFile, User
 from ..parsing import SUPPORTED_EXTENSIONS, extract_text, safe_filename
 from ..response import ok
@@ -472,8 +473,18 @@ def list_children(
 
 # ---------------- testcases ----------------
 @router.get("/testcases")
-def list_testcases(pid: str = Depends(project_scope)) -> dict[str, Any]:
-    return ok(store.all("testCases", pid))
+def list_testcases(
+    requirementId: str | None = None,
+    pid: str = Depends(project_scope),
+) -> dict[str, Any]:
+    items = store.all("testCases", pid)
+    if requirementId:
+        items = [
+            item for item in items
+            if item.get("requirementId") == requirementId
+            or requirementId in (item.get("relatedRequirementIds") or [])
+        ]
+    return ok(items)
 
 
 @router.post("/testcases")
@@ -515,6 +526,30 @@ def delete_testcase(case_id: str, pid: str = Depends(project_editor_scope)) -> d
     return ok(None)
 
 
+@router.get("/testcases/engines")
+def available_engines(_: User = Depends(get_current_user)) -> dict[str, Any]:
+    """返回用例生成引擎及可用性，供前端决定默认引擎与提示。"""
+    key = settings.llm_api_key or ""
+    placeholder = (not key) or len(key) < 20 or "xxx" in key.lower() or key in {"sk-", "your-key", "test-key"}
+    return ok({
+        "engines": [
+            {
+                "value": "internal", "label": "系统内部逻辑",
+                "available": True,
+                "desc": "基于 PRD 业务规则、负面清单与追溯链本地生成，无需外部 API",
+            },
+            {
+                "value": "external", "label": "外部 AI API",
+                "available": not placeholder,
+                "desc": f"调用外部大模型（{settings.llm_model}）生成" if not placeholder
+                        else "未配置有效的 LLM_API_KEY，当前不可用",
+            },
+        ],
+        "externalReady": not placeholder,
+        "model": settings.llm_model,
+    })
+
+
 @router.post("/testcases/generate")
 def generate_cases(
     body: GenerateCasesRequest,
@@ -523,6 +558,7 @@ def generate_cases(
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     context = body.source
+    requirement = None
     if body.requirementId:
         requirement = db.scalar(select(Requirement).where(
             Requirement.id == body.requirementId, Requirement.project_id == pid
@@ -530,19 +566,75 @@ def generate_cases(
         if not requirement:
             raise HTTPException(404, "需求不存在")
         context = requirement_text(requirement, db)
-    try:
-        drafts = generate_testcases(body.source, context)
-    except LLMUnavailable as exc:
-        raise HTTPException(503, str(exc)) from exc
-    except LLMError as exc:
-        raise HTTPException(502, str(exc)) from exc
+
+    # 关联需求（含主需求）：既作为生成上下文，也写入用例的关联字段
+    related_ids = list(dict.fromkeys(
+        ([body.requirementId] if body.requirementId else []) + list(body.relatedRequirementIds)
+    ))
+    related_titles: dict[str, str] = {}
+    if related_ids:
+        rows = db.execute(
+            select(Requirement.id, Requirement.title).where(Requirement.id.in_(related_ids))
+        ).all()
+        related_titles = {r[0]: r[1] for r in rows}
+        if related_titles:
+            context += "\n\n关联需求：\n" + "\n".join(
+                f"- {rid}: {title}" for rid, title in related_titles.items())
+
+    # PRD：内部引擎的核心输入；外部引擎也可作为增强上下文
+    prd_doc = None
+    if body.requirementId:
+        row = db.execute(text(
+            "SELECT doc FROM requirement_prd WHERE requirement_id=:rid AND project_id=:pid"
+        ), {"rid": body.requirementId, "pid": pid}).fetchone()
+        if row:
+            prd_doc = row[0]
+
+    if body.engine == "internal":
+        drafts = local_generate(
+            title=requirement.title if requirement else body.source,
+            module_hint=related_titles.get(body.requirementId, ""),
+            strategies=body.strategies,
+            prd_doc=prd_doc,
+            context=context,
+        )
+        engine_label = "内部逻辑"
+    else:
+        # 外部 AI：把 PRD 的负面清单与业务规则作为增强上下文注入
+        if prd_doc and body.rag:
+            s = prd_doc.get("sections", {})
+            rules = "\n".join(f"- {r.get('text', '')}" for r in s.get("businessRules", []))
+            negs = "\n".join(f"- [{n.get('id')}] {n.get('scenario', '')}"
+                             for n in s.get("exceptions", []))
+            context += f"\n\n业务规则：\n{rules}\n\n已知负面场景：\n{negs}"
+        strategies_cn = "、".join(body.strategies)
+        try:
+            drafts = generate_testcases(
+                f"{body.source}（引擎=外部AI，模型={body.model or 'default'}，策略={strategies_cn}）",
+                context,
+            )
+        except LLMUnavailable as exc:
+            raise HTTPException(503, f"外部 AI 不可用：{exc}。可切换到「内部逻辑」引擎。") from exc
+        except LLMError as exc:
+            raise HTTPException(
+                502, f"外部 AI 调用失败（{exc}）。请在生成配置中切换到「系统内部逻辑」引擎。"
+            ) from exc
+        engine_label = f"外部AI·{body.model or '默认'}"
+
+    # 按策略过滤（外部模型可能不严格遵循，这里强制对齐勾选的策略）
+    wanted = {STRATEGY_CN.get(s, s) for s in body.strategies}
+    drafts = [d for d in drafts if not wanted or d.get("type") in wanted] or drafts
+
     start = next_numeric_id(store.all("testCases", pid), "id", "TC")
     return ok([
         {
             "id": f"TC-{start + index}",
             "projectId": pid,
             **draft,
-            "source": "AI",
+            "source": engine_label,
+            "requirementId": body.requirementId or "",
+            "relatedRequirementIds": related_ids,
+            "relatedRequirementTitles": [related_titles.get(r, r) for r in related_ids],
             "owner": user.name,
             "status": "草稿",
             "version": "v1",

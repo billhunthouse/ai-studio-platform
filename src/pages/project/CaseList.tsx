@@ -84,8 +84,16 @@ export function CaseList() {
           <Btn size="sm" onClick={openCreate}>+ 新建用例</Btn>
         </Toolbar>
         <Table
-          cols={["ID", "标题", "模块", "类型", "优先级", "状态", "版本"]}
-          rows={list.map((c) => [c.id, c.title, c.module, c.type, c.priority, c.status, c.version])}
+          cols={["ID", "标题", "模块", "类型", "优先级", "关联需求", "状态", "版本"]}
+          rows={list.map((c) => [
+            c.id, c.title, c.module, c.type, c.priority,
+            (c.relatedRequirementIds ?? []).length > 0
+              ? <span className="font-mono text-[10px] text-brand-600" title={(c.relatedRequirementIds ?? []).join(", ")}>
+                  {(c.relatedRequirementIds ?? []).join(" / ")}
+                </span>
+              : <span className="text-[10px] text-ink-300">—</span>,
+            c.status, c.version,
+          ])}
           loading={loading}
           empty="当前项目还没有测试用例"
           emptyAction={<Btn size="sm" onClick={openCreate}>+ 新建用例</Btn>}

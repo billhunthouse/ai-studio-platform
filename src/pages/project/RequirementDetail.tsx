@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { prdApi, requirementsApi } from "@/api";
+import { prdApi, requirementsApi, testcasesApi } from "@/api";
 import type { PrdResponse } from "@/api/prd";
-import type { Requirement } from "@/api/types";
+import type { Requirement, TestCase } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
 import { downloadBlob } from "@/lib/download";
@@ -18,6 +18,8 @@ export function RequirementDetail() {
     () => req ? requirementsApi.children(req.id) : Promise.resolve([]), [req?.id], [] as Requirement[]);
   const { data: prd, reload: reloadPrd } = useAsync<PrdResponse | null>(
     () => prdApi.get(rid).then((r) => r ?? null).catch(() => null), [rid], null);
+  const { data: relatedCases } = useAsync<TestCase[]>(
+    () => testcasesApi.list(rid).catch(() => []), [rid], []);
   const { projectId, toast } = useApp();
   const navigate = useNavigate();
 
@@ -157,7 +159,25 @@ export function RequirementDetail() {
         )}
 
         <div className="mt-4 border-t border-ink-100 pt-4">
-          <Btn v="secondary" size="sm" className="w-full"
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-[11px] font-medium text-ink-500">关联测试用例</div>
+            <span className="text-[10px] text-ink-400">{relatedCases.length} 条</span>
+          </div>
+          {relatedCases.length > 0 ? (
+            <div className="max-h-32 space-y-0.5 overflow-auto">
+              {relatedCases.map((c) => (
+                <button key={c.id} onClick={() => navigate(`/project/${projectId}/testcases?case=${encodeURIComponent(c.id)}`)}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] hover:bg-ink-50">
+                  <span className="font-mono text-[10px] text-ink-400">{c.id}</span>
+                  <span className="min-w-0 flex-1 truncate text-ink-600">{c.title}</span>
+                  <Tag t={c.type} c={c.type === "异常" ? "red" : "blue"} dot={false} />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-[10px] text-ink-400">暂无关联用例</div>
+          )}
+          <Btn v="secondary" size="sm" className="mt-2 w-full"
             onClick={() => navigate(`/project/${projectId}/testcases/generate?requirement=${encodeURIComponent(req.id)}&source=${encodeURIComponent("需求文档")}`)}>
             基于需求生成测试用例 <Icon name="arrow-right" size={13} />
           </Btn>

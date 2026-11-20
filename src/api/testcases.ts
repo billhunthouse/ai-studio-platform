@@ -8,14 +8,27 @@ export interface ImportResult {
 }
 
 export const testcasesApi = {
-  list: () => get<TestCase[]>("/testcases"),
+  list: (requirementId?: string) =>
+    get<TestCase[]>(`/testcases${requirementId ? `?requirementId=${encodeURIComponent(requirementId)}` : ""}`),
   create: (input: Omit<TestCase, "id" | "updatedAt" | "version" | "status">) =>
     post<TestCase>("/testcases", input),
   update: (id: string, body: Partial<TestCase>) =>
     put<TestCase>(`/testcases/${encodeURIComponent(id)}`, body),
   remove: (id: string) => del<null>(`/testcases/${encodeURIComponent(id)}`),
-  generate: (source: string, requirementId?: string) =>
-    post<TestCase[]>("/testcases/generate", { source, requirementId }),
+  engines: () => get<{
+    engines: Array<{ value: "internal" | "external"; label: string; available: boolean; desc: string }>;
+    externalReady: boolean;
+    model: string;
+  }>("/testcases/engines"),
+  generate: (input: {
+    source: string;
+    requirementId?: string;
+    engine: "internal" | "external";
+    strategies: string[];
+    rag: boolean;
+    model?: string;
+    relatedRequirementIds?: string[];
+  }) => post<TestCase[]>("/testcases/generate", input),
   submitReview: (cases: TestCase[]) => post<number>("/testcases/review", { cases }),
   reviewQueue: () => get<CaseReviewItem[]>("/testcases/reviews"),
   review: (caseId: string, action: "通过" | "驳回", comment: string) =>

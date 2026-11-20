@@ -139,6 +139,9 @@ export interface TestCase {
   source: string;
   owner: string;
   updatedAt: string;
+  requirementId?: string;
+  relatedRequirementIds?: string[];
+  relatedRequirementTitles?: string[];
 }
 
 export interface CaseComment {
