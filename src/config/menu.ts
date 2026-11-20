@@ -15,8 +15,8 @@ export const MENUS: Record<Layer, MenuItem[]> = {
   project: [
     { key: "overview", label: "项目概览", tabs: [{ label: "概览", path: "overview" }] },
     { key: "requirements", label: "需求管理", tabs: [{ label: "需求列表", path: "requirements" }, { label: "需求详情", path: "requirements/:rid" }] },
-    { key: "trace", label: "追溯中心", tabs: [
-      { label: "追溯总览", path: "trace" },
+    { key: "trace", label: "需求字段列", tabs: [
+      { label: "字段列表", path: "trace" },
       { label: "实体详情", path: "trace/entity", hidden: true },
     ] },
     { key: "testcases", label: "测试用例", tabs: [{ label: "用例列表", path: "testcases" }, { label: "AI 生成用例", path: "testcases/generate" }, { label: "用例评审", path: "testcases/review" }] },

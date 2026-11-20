@@ -57,6 +57,13 @@ export function TraceCenter() {
     return m;
   }, [meta.items]);
 
+  // 需求字段列表：按需求编号索引各层关联情况
+  const matrixMap = useMemo(() => {
+    const m: Record<string, typeof matrix.rows[number]> = {};
+    (matrix?.rows ?? []).forEach((r) => { m[r.id] = r; });
+    return m;
+  }, [matrix]);
+
   useEffect(() => {
     if (!selectedReq && reqList?.length) setSelectedReq(reqList[0].id);
   }, [reqList, selectedReq]);
@@ -109,68 +116,29 @@ export function TraceCenter() {
         <>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Stat label="需求总数" value={overview?.requirementTotal ?? "--"} />
-            <Stat label="四层全覆盖" value={overview ? `${Math.round(overview.coverageRate * 100)}%` : "--"}
-              hint="页面/接口/代码/表 都有可达实体" />
             <Stat label="至少一层关联" value={overview ? `${Math.round(overview.linkedRate * 100)}%` : "--"} />
-            <Stat label="待确认 / 待复核"
-              value={`${overview?.pendingRelationCount ?? "--"} / ${overview?.staleRelationCount ?? "--"}`} />
+            <Stat label="待确认" value={overview?.pendingRelationCount ?? "--"} />
+            <Stat label="待复核 stale" value={overview?.staleRelationCount ?? "--"} />
           </div>
-          {overview && (
-            <Card title="分层覆盖">
-              <div className="flex flex-wrap gap-2">
-                {[
-                  ["page", "功能页面"], ["api", "接口"],
-                  ["code_artifact", "实现代码"], ["table", "数据表"],
-                ].map(([key, label]) => {
-                  const hit = overview.layerCoverage?.[key] ?? 0;
-                  const total = overview.requirementTotal || 1;
-                  const broken = hit < total;
-                  return (
-                    <div key={key}
-                      className={`flex-1 rounded-lg border px-4 py-3 ${broken ? "border-amber-200 bg-amber-50/50" : "border-line bg-white"}`}>
-                      <div className="text-[11px] text-ink-500">{label}</div>
-                      <div className={`mt-1 text-[15px] font-semibold ${broken ? "text-amber-700" : "text-ink-900"}`}>
-                        {hit}/{total}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {!!overview.gaps?.length && (
-                <div className="mt-3 space-y-1.5">
-                  {overview.gaps.map((g) => (
-                    <button key={g.id} onClick={() => navigate(traceHref("requirement", g.id, projectId))}
-                      className="flex w-full items-center gap-2 rounded-md bg-amber-50/60 px-3 py-2 text-left text-[11px] text-amber-800 hover:bg-amber-100/60">
-                      <span className="font-mono">{g.id}</span>
-                      <span className="flex-1 truncate">{g.title}</span>
-                      <span>缺：{g.missing.map((m) => TYPE_LABEL[m] ?? m).join(" / ")}</span>
-                      <Icon name="chevron-right" size={12} />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
-          <Card title="当前平台在做什么">
-            <div className="text-xs text-ink-600 leading-6 space-y-1">
-              <p>1. 把「需求 → 功能页面 → 接口 → 实现代码 / 数据表」这条链固化成可查询的图谱。</p>
-              <p>2. 链路节点都能点开：页面看归属需求，接口看契约与实现，数据表看字段结构。</p>
-              <p>3. 接口与表的数据来自代码扫描（Spring 注解 + MyBatis 实体），不是手抄的。</p>
-              <p className="text-ink-400">扫描器见 backend/scanners/java_scanner.py，一条命令重新采集。</p>
-            </div>
-          </Card>
-          <Card title="链路覆盖情况"
-            extra={<Btn v="secondary" size="sm" onClick={() => setTab("chain")}>打开关联链路</Btn>}>
+          <Card title="需求字段列表"
+            extra={<span className="text-[11px] text-ink-400">点击任意行进入需求详情</span>}>
             <Table
-              cols={["需求", "标题", "页面", "接口", "代码", "表", "覆盖率"]}
-              rows={(matrix?.rows ?? []).map((r) => [
-                <span className="font-mono text-brand-500 text-[11px]">{r.id}</span>,
-                r.title, r.page || "—", r.api || "—", r.code_artifact || "—", r.table || "—",
-                `${r.coverage}%`,
-              ])}
+              cols={["编号", "标题", "优先级", "状态", "负责人", "版本", "页面", "接口", "代码", "表"]}
+              rows={(reqList ?? []).map((r) => {
+                const m = matrixMap[r.id];
+                return [
+                  <span className="font-mono text-brand-500 text-[11px]">{r.id}</span>,
+                  r.title,
+                  <Tag t={r.priority} c={r.priority === "P0" ? "red" : r.priority === "P1" ? "amber" : "blue"} />,
+                  r.status,
+                  r.owner || "—",
+                  r.version || "—",
+                  m ? m.page : "—", m ? m.api : "—", m ? m.code_artifact : "—", m ? m.table : "—",
+                ];
+              })}
               onRowClick={(i) => {
-                const row = matrix?.rows[i];
-                if (row) navigate(`/project/${projectId}/trace/entity?type=requirement&id=${row.id}`);
+                const r = reqList?.[i];
+                if (r) navigate(`/project/${projectId}/requirements/${r.id}`);
               }}
             />
           </Card>
