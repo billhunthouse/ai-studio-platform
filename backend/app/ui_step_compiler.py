@@ -150,7 +150,14 @@ def compile_step(raw: str) -> StepIR:
 
 
 def compile_case(case: dict) -> dict:
-    """编译一条功能测试用例。"""
+    """编译一条功能测试用例。
+
+    增强：抽象步骤（design_check）按 module+title 匹配 Page Object 流程，
+    展开为真实可执行的 nav/click/fill 步骤（定位器来自真实 Vue 源码元素库）。
+    原抽象步骤保留为 note，不丢失测试意图。
+    """
+    from .ui_page_objects import match_po, BASE_URL
+
     steps = case.get("steps") or []
     if isinstance(steps, str):
         steps = [s.strip() for s in steps.splitlines() if s.strip()]
@@ -160,6 +167,29 @@ def compile_case(case: dict) -> dict:
     if expected and not any(ir.keyword == "assert" for ir in irs):
         irs.append(StepIR("assert", {"expectation": expected}, f"验证：{expected}",
                           confidence="medium", note="来自用例预期结果"))
+
+    # Page Object 展开：如果有抽象步骤，尝试匹配可复用流程
+    po_name = ""
+    has_abstract = any(ir.is_design_check or ir.keyword == "unknown" for ir in irs)
+    if has_abstract:
+        matched = match_po(case.get("module", ""), case.get("title", ""))
+        if matched:
+            po_name, po_steps = matched
+            # 在原抽象步骤位置插入 PO 步骤，原步骤保留为说明
+            expanded: list[StepIR] = []
+            inserted = False
+            for ir in irs:
+                if ir.is_design_check or ir.keyword == "unknown":
+                    if not inserted:
+                        for ps in po_steps:
+                            expanded.append(StepIR(
+                                keyword=ps.keyword, args=ps.args, raw=ps.raw,
+                                confidence="high", note=f"由 PO「{po_name}」展开（原意图：{ir.raw[:40]}）",
+                            ))
+                        inserted = True
+                    continue  # 所有抽象步骤都被 PO 吸收，不重复展开
+                expanded.append(ir)
+            irs = expanded
 
     executable = sum(1 for ir in irs if ir.executable)
     design_checks = sum(1 for ir in irs if ir.is_design_check)
@@ -174,9 +204,10 @@ def compile_case(case: dict) -> dict:
             "total": len(irs), "executable": executable,
             "designChecks": design_checks, "unknown": unknown,
             "ready": executable > 0 and design_checks == 0 and unknown == 0,
-            "uiRunnable": executable > 0,  # 有可执行步骤即可跑 UI 部分
+            "uiRunnable": executable > 0,
+            "pageObject": po_name,
         },
-        "baseUrl": "http://127.0.0.1:5174",
+        "baseUrl": BASE_URL,
         "stepDelayMs": STEP_DELAY_MS,
     }
 
