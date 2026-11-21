@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from .audit import audit_middleware
 from .config import settings
 from .response import ok
-from .routers import admin, agent_eval, ai, auth, core, mcp, mcp_connect, projects, skills, testing
+from .routers import admin, agent_eval, ai, auth, core, mcp, mcp_connect, prd, projects, skills, testing, trace
 from .seed import seed_all
 
 logger = logging.getLogger("ai-test-platform")
@@ -42,12 +42,14 @@ for router in (
     core.router,
     projects.router,
     testing.router,
+    prd.router,
     ai.router,
     agent_eval.router,
     admin.router,
     mcp.router,
     mcp_connect.router,
     skills.router,
+    trace.router,
 ):
     app.include_router(router, prefix="/api/v1")
 

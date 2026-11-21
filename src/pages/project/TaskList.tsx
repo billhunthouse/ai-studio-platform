@@ -45,7 +45,7 @@ export function TaskList() {
             t.name,
             t.type,
             t.trigger,
-            <div key="p" className="flex items-center gap-2 w-28"><Progress value={t.progress} className="flex-1" /><span className="text-[11px] text-slate-500">{t.progress}%</span></div>,
+            <div key="p" className="flex items-center gap-2 w-28"><Progress value={t.progress} className="flex-1" /><span className="text-[11px] text-ink-500">{t.progress}%</span></div>,
             t.status,
             t.startedAt,
           ])}
@@ -75,12 +75,12 @@ export function TaskList() {
       >
         {detail && (
           <div className="space-y-3">
-            <div><div className="text-xs text-slate-500 mb-1">执行进度</div><Progress value={detail.progress} /></div>
+            <div><div className="text-xs text-ink-500 mb-1">执行进度</div><Progress value={detail.progress} /></div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">执行日志</div>
+              <div className="text-xs text-ink-500 mb-1">执行日志</div>
               <pre className="bg-slate-900 text-emerald-300 rounded-md p-3 text-[11px] overflow-x-auto whitespace-pre-wrap">{detail.logs.join("\n")}</pre>
             </div>
-            {detail.result && <div className="text-xs"><span className="text-slate-500">产物：</span>{detail.result}</div>}
+            {detail.result && <div className="text-xs"><span className="text-ink-500">产物：</span>{detail.result}</div>}
           </div>
         )}
       </DetailDrawer>

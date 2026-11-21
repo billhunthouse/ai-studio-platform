@@ -44,11 +44,11 @@ export function VersionCompare() {
     <div className="space-y-4">
       <Card title="对比设置">
         <div className="flex items-center gap-3 text-xs flex-wrap">
-          <span className="text-slate-500">产物类型</span>
+          <span className="text-ink-500">产物类型</span>
           <Select opts={KINDS} value={kind} onChange={(e) => setKind(e.target.value)} />
-          <span className="text-slate-500 ml-2">旧版本</span>
+          <span className="text-ink-500 ml-2">旧版本</span>
           <Select opts={list.map((v) => `${v.version} · ${v.name}`)} value={left ? `${left.version} · ${left.name}` : ""} onChange={(e) => { const v = list.find((x) => `${x.version} · ${x.name}` === e.target.value); if (v) setLeftId(v.id); }} />
-          <span className="text-slate-500">新版本</span>
+          <span className="text-ink-500">新版本</span>
           <Select opts={list.map((v) => `${v.version} · ${v.name}`)} value={right ? `${right.version} · ${right.name}` : ""} onChange={(e) => { const v = list.find((x) => `${x.version} · ${x.name}` === e.target.value); if (v) setRightId(v.id); }} />
           <div className="flex-1" />
           <div className="flex gap-1">
@@ -59,19 +59,19 @@ export function VersionCompare() {
         </div>
       </Card>
 
-      <Card title={left && right ? `${left.name} · ${left.version} → ${right.version}` : "版本对比"} extra={<span className="text-[11px] text-slate-500">共 {list.length} 个版本</span>}>
+      <Card title={left && right ? `${left.name} · ${left.version} → ${right.version}` : "版本对比"} extra={<span className="text-[11px] text-ink-500">共 {list.length} 个版本</span>}>
         {list.length < 2 || !left || !right ? (
-          <div className="h-48 grid place-items-center text-xs text-slate-500">该类型暂无可对比的版本</div>
+          <div className="h-48 grid place-items-center text-xs text-ink-500">该类型暂无可对比的版本</div>
         ) : view === "差异" ? (
-          compared ? <VersionDiff left={compared.left.content} right={compared.right.content} leftLabel={compared.left.version} rightLabel={compared.right.version} /> : <div className="h-40 grid place-items-center text-xs text-slate-500">加载差异…</div>
+          compared ? <VersionDiff left={compared.left.content} right={compared.right.content} leftLabel={compared.left.version} rightLabel={compared.right.version} /> : <div className="h-40 grid place-items-center text-xs text-ink-500">加载差异…</div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-xs text-slate-500 mb-2">{left.version} · {left.createdAt}</div>
+              <div className="text-xs text-ink-500 mb-2">{left.version} · {left.createdAt}</div>
               <MonacoEditor value={left.content} language={left.kind === "原型结构" ? "json" : left.kind === "接口设计" ? "yaml" : "python"} height={420} readOnly path={`left-${left.id}`} />
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-2">{right.version} · {right.createdAt}</div>
+              <div className="text-xs text-ink-500 mb-2">{right.version} · {right.createdAt}</div>
               <MonacoEditor value={right.content} language={right.kind === "原型结构" ? "json" : right.kind === "接口设计" ? "yaml" : "python"} height={420} readOnly path={`right-${right.id}`} />
             </div>
           </div>

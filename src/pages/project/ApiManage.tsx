@@ -25,7 +25,7 @@ paths:
       summary: 领取权益`;
 
 export function ApiManage() {
-  const { data, setData } = useAsync(() => apiTestApi.definitions(), [], [] as ApiEndpoint[]);
+  const { data, setData, loading } = useAsync(() => apiTestApi.definitions(), [], [] as ApiEndpoint[]);
   const { projectId, toast } = useApp();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -77,15 +77,15 @@ export function ApiManage() {
       <div className="grid grid-cols-4 gap-4">
         <Card title="接口目录">
           {modules.map((d) => (
-            <button key={d} onClick={() => setModule(d)} className={cx("w-full text-left py-1.5 text-xs hover:text-blue-600", module === d && "text-blue-600 font-medium")}>
-              ▸ {d} <span className="text-slate-500">({d === "全部" ? data.length : data.filter((x) => x.module === d).length})</span>
+            <button key={d} onClick={() => setModule(d)} className={cx("w-full text-left py-1.5 text-xs hover:text-brand-600", module === d && "text-brand-600 font-medium")}>
+              ▸ {d} <span className="text-ink-500">({d === "全部" ? data.length : data.filter((x) => x.module === d).length})</span>
             </button>
           ))}
         </Card>
         <Card className="col-span-3">
           <Toolbar placeholder="搜索路径/名称" onSearch={setQuery} filters={<span />}>
-            <Btn v="ghost" onClick={() => setImportOpen(true)}>导入 OpenAPI</Btn>
-            <Btn onClick={() => setOpen(true)}>+ 新建接口</Btn>
+            <Btn v="secondary" size="sm" onClick={() => setImportOpen(true)}>导入 OpenAPI</Btn>
+            <Btn size="sm" onClick={() => setOpen(true)}>+ 新建接口</Btn>
           </Toolbar>
           <Table
             cols={["方法", "路径", "名称", "状态", "创建人"]}
@@ -96,10 +96,13 @@ export function ApiManage() {
               d.status,
               d.creator,
             ])}
+            loading={loading}
+            empty="还没有接口定义"
+            emptyAction={<Btn size="sm" onClick={() => setOpen(true)}>+ 新建接口</Btn>}
             actions={(i) => (
               <>
-                <Btn v="ghost" onClick={() => navigate(`/project/${projectId}/api/debug?path=${encodeURIComponent(list[i].path)}&method=${list[i].method}`)}>调试</Btn>
-                <Btn v="danger" onClick={() => remove(list[i].id)}>删除</Btn>
+                <Btn v="secondary" size="sm" onClick={() => navigate(`/project/${projectId}/api/debug?path=${encodeURIComponent(list[i].path)}&method=${list[i].method}`)}>调试</Btn>
+                <Btn v="danger" size="sm" onClick={() => remove(list[i].id)}>删除</Btn>
               </>
             )}
           />

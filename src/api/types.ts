@@ -139,6 +139,30 @@ export interface TestCase {
   source: string;
   owner: string;
   updatedAt: string;
+  requirementId?: string;
+  relatedRequirementIds?: string[];
+  relatedRequirementTitles?: string[];
+  /** 测试工程师 AGENT 扩展字段 */
+  designMethod?: string;
+  relatedApi?: string;
+  testData?: string;
+  dbCheck?: string;
+  /** 测试类型：api=API 测试用例（可自动运行）；functional=功能测试用例（人工执行） */
+  caseType?: "api" | "functional";
+  /** 最近一次运行/执行结果 */
+  lastRun?: { at: string; mode: string; verdict: string; detail?: string; http?: number; note?: string; executor?: string };
+}
+
+export interface CaseRunReport {
+  mode: "api" | "manual";
+  verdict?: string;
+  detail?: string;
+  request?: { method: string; path: string; body?: unknown };
+  actual?: { http: number; code?: number; msg?: string; dataPreview?: string };
+  expectation?: Record<string, unknown>;
+  lastRun?: TestCase["lastRun"];
+  message?: string;
+  case?: TestCase;
 }
 
 export interface CaseComment {
@@ -223,6 +247,10 @@ export interface UiScript {
   content: string;
   updatedAt: string;
   status: string;
+  /** UI 自动化：关联的测试用例与编译后的关键字 IR */
+  caseId?: string;
+  caseTitle?: string;
+  ir?: Record<string, unknown>;
 }
 
 export interface RecorderStep {

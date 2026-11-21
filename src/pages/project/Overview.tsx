@@ -9,7 +9,7 @@ export function Overview() {
   const { data: project } = useAsync<Project | null>(() => projectsApi.get(projectId).then((p) => p ?? null), [projectId], null);
   const { data: tasks } = useAsync(() => tasksApi.history(), [], []);
 
-  if (!project) return <div className="h-40 grid place-items-center text-xs text-slate-500">加载中…</div>;
+  if (!project) return <div className="h-40 grid place-items-center text-xs text-ink-500">加载中…</div>;
 
   return (
     <div className="space-y-4">
@@ -26,10 +26,10 @@ export function Overview() {
           <Bars data={[82, 88, 76, 91, 85, 94, 90]} color="bg-emerald-500" />
         </Card>
         <Card title="用例分布">
-          {[["API", 58, "bg-blue-500"], ["WebUI", 24, "bg-indigo-500"], ["App", 12, "bg-violet-500"], ["手工", 6, "bg-slate-400"]].map(([l, v, c]) => (
+          {[["API", 58, "bg-brand-500"], ["WebUI", 24, "bg-indigo-500"], ["App", 12, "bg-violet-500"], ["手工", 6, "bg-ink-400"]].map(([l, v, c]) => (
             <div key={l as string} className="mb-3 text-xs">
               <div className="flex justify-between mb-1"><span>{l}</span><span>{v}%</span></div>
-              <div className="h-2 bg-slate-100 rounded"><div className={`h-2 rounded ${c}`} style={{ width: `${v}%` }} /></div>
+              <div className="h-2 bg-ink-100 rounded"><div className={`h-2 rounded ${c}`} style={{ width: `${v}%` }} /></div>
             </div>
           ))}
         </Card>
@@ -42,10 +42,10 @@ export function Overview() {
       <Card title="项目成员">
         <div className="flex gap-3 flex-wrap">
           {project.members.map((m) => (
-            <div key={m.userId} className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-md text-xs">
-              <div className="w-6 h-6 rounded-full bg-blue-500 text-white grid place-items-center text-[10px]">{m.name.slice(0, 1)}</div>
+            <div key={m.userId} className="flex items-center gap-2 px-3 py-2 border border-line rounded-md text-xs">
+              <div className="w-6 h-6 rounded-full bg-brand-500 text-white grid place-items-center text-[10px]">{m.name.slice(0, 1)}</div>
               {m.name}
-              <span className="text-slate-500">{m.role}</span>
+              <span className="text-ink-500">{m.role}</span>
             </div>
           ))}
         </div>

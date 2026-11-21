@@ -5,13 +5,13 @@ import type { Requirement } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
 import { confirmDelete } from "@/lib/confirm";
-import { Btn, Card, Field, Input, Modal, Select, Table, Tag, Textarea, Toolbar } from "@/components/ui";
+import { Btn, Card, Field, Icon, Input, Modal, Select, Table, Tag, Textarea, Toolbar } from "@/components/ui";
 import { cx } from "@/lib/cx";
 
 const STATUSES = ["全部状态", "待解析", "解析中", "已解析", "待评审", "已完成", "已驳回"];
 
 export function RequirementList() {
-  const { data, setData, reload } = useAsync(() => requirementsApi.list(), [], [] as Requirement[]);
+  const { data, setData, reload, loading } = useAsync(() => requirementsApi.list(), [], [] as Requirement[]);
   const { projectId, addTask, toast } = useApp();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -67,34 +67,37 @@ export function RequirementList() {
   for (const item of visible) {
     const isOpen = item.children.length > 0 && (isFiltering || expanded.has(item.root.id));
     rows.push([
-      item.root.id,
+      <span key="id" className="font-mono text-[11px] text-ink-500">{item.root.id}</span>,
       <div key="title" className="flex items-center gap-2">
         <button
           onClick={() => toggle(item.root.id)}
           disabled={childrenOf(item.root.id).length === 0}
-          className={cx("w-5 h-5 rounded border grid place-items-center text-[11px] disabled:opacity-30", isOpen ? "border-blue-300 text-blue-600 bg-blue-50" : "border-slate-300 text-slate-500")}
+          className={cx(
+            "grid h-6 w-6 place-items-center rounded-md border text-[12px] transition-colors disabled:opacity-30",
+            isOpen ? "border-brand-200 bg-brand-50 text-brand-600" : "border-ink-200 bg-white text-ink-500 hover:border-brand-300 hover:text-brand-600",
+          )}
           aria-label={isOpen ? "收起子需求" : "展开子需求"}
         >
           {isOpen ? "−" : "+"}
         </button>
         <Tag t={childrenOf(item.root.id).length > 0 ? "模块" : "独立需求"} c={childrenOf(item.root.id).length > 0 ? "blue" : "gray"} />
-        <span className="font-medium truncate max-w-[460px]" title={item.root.title}>{item.root.title}</span>
+        <span className="max-w-[420px] truncate font-medium text-ink-800" title={item.root.title}>{item.root.title}</span>
       </div>,
-      String(item.children.length),
+      <span key="count" className="tabular-nums text-[12px] text-ink-500">{item.children.length}</span>,
       item.root.priority,
       item.root.status,
-      item.root.owner || "-",
+      <span key="owner" className="text-[12px] text-ink-600">{item.root.owner || "-"}</span>,
     ]);
     targets.push(item.root);
     if (isOpen) {
       for (const child of item.children) {
         rows.push([
-          child.id,
-          <span key="title" className="pl-8 text-slate-600 block truncate max-w-[520px]" title={child.title}>└ {child.title}</span>,
-          "-",
+          <span key="id" className="pl-5 font-mono text-[11px] text-ink-400">{child.id}</span>,
+          <span key="title" className="block max-w-[520px] truncate pl-8 text-[12px] text-ink-600" title={child.title}>└ {child.title}</span>,
+          <span key="count" className="text-[12px] text-ink-300">—</span>,
           child.priority,
           child.status,
-          child.owner || "-",
+          <span key="owner" className="text-[12px] text-ink-600">{child.owner || "-"}</span>,
         ]);
         targets.push(child);
       }
@@ -159,13 +162,24 @@ export function RequirementList() {
   return (
     <>
       <Card>
-        <div className="flex items-center gap-4 mb-3 text-xs text-slate-500">
-          <span>业务模块 <b className="text-slate-800">{moduleRoots.length}</b></span>
-          <span>独立需求 <b className="text-slate-800">{standaloneRoots.length}</b></span>
-          <span>子需求 <b className="text-slate-800">{subCount}</b></span>
-          <span>需求总数 <b className="text-slate-800">{data.length}</b></span>
-          <span className="ml-auto">默认按业务模块收起，点击 +/− 展开或收起子需求</span>
+        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["业务模块", moduleRoots.length, "按主需求分组"],
+            ["独立需求", standaloneRoots.length, "文档或单条需求"],
+            ["子需求", subCount, "已拆分的功能点"],
+            ["需求总数", data.length, "当前项目范围"],
+          ].map(([label, value, hint]) => (
+            <div key={String(label)} className="rounded-xl border border-line bg-ink-50/60 px-4 py-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="text-[11px] font-medium text-ink-500">{label}</div>
+                <Icon name="folder" size={14} className="text-ink-300" />
+              </div>
+              <div className="mt-1 tabular-nums text-[22px] font-semibold leading-none tracking-[-0.03em] text-ink-900">{value}</div>
+              <div className="mt-1.5 text-[10px] text-ink-400">{hint}</div>
+            </div>
+          ))}
         </div>
+
         <Toolbar
           placeholder="搜索需求名称/编号"
           onSearch={setQuery}
@@ -173,12 +187,13 @@ export function RequirementList() {
             <div className="flex items-center gap-2">
               <select
                 value={module}
+                aria-label="按业务模块筛选"
                 onChange={(e) => {
                   const value = e.target.value;
                   setModule(value);
                   if (value) setExpanded(new Set([value]));
                 }}
-                className="h-8 px-2 rounded-md border border-slate-300 text-xs bg-white max-w-60"
+                className="h-9 max-w-60 rounded-lg border border-line bg-white pl-3 pr-8 text-[13px] text-ink-700 shadow-sm outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10"
               >
                 <option value="">全部需求</option>
                 <optgroup label="业务模块">
@@ -200,19 +215,22 @@ export function RequirementList() {
             </div>
           }
         >
-          <Btn v="ghost" onClick={expandAll}>全部展开</Btn>
-          <Btn v="ghost" onClick={collapseAll}>全部收起</Btn>
-          <Btn v="ghost" onClick={() => setUploadOpen(true)}>上传文档</Btn>
-          <Btn onClick={() => setOpen(true)}>+ 新建需求</Btn>
+          <Btn v="ghost" size="sm" onClick={expandAll}>全部展开</Btn>
+          <Btn v="ghost" size="sm" onClick={collapseAll}>全部收起</Btn>
+          <Btn v="secondary" size="sm" onClick={() => setUploadOpen(true)}>上传文档</Btn>
+          <Btn size="sm" onClick={() => setOpen(true)}>+ 新建需求</Btn>
         </Toolbar>
+
         <Table
           cols={["编号", "需求名称", "子需求", "优先级", "状态", "负责人"]}
           rows={rows}
+          loading={loading}
           empty="没有匹配的需求"
+          emptyAction={<Btn size="sm" onClick={() => setOpen(true)}>+ 新建需求</Btn>}
           actions={(i) => (
             <>
-              <Btn v="ghost" onClick={() => navigate(`/project/${projectId}/requirements/${targets[i].id}`)}>详情</Btn>
-              <Btn v="danger" onClick={() => remove(targets[i].id)}>删除</Btn>
+              <Btn v="secondary" size="sm" onClick={() => navigate(`/project/${projectId}/requirements/${targets[i].id}`)}>详情</Btn>
+              <Btn v="danger" size="sm" onClick={() => remove(targets[i].id)}>删除</Btn>
             </>
           )}
         />
@@ -225,21 +243,21 @@ export function RequirementList() {
             <Field label="优先级"><Select opts={["P0", "P1", "P2"]} className="w-full" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value as Requirement["priority"] })} /></Field>
             <Field label="负责人"><Input className="w-full" value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></Field>
           </div>
-          <Field label="需求描述"><Textarea className="w-full h-24" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+          <Field label="需求描述"><Textarea className="h-24 w-full" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
         </div>
       </Modal>
 
-      <Modal open={uploadOpen} title="上传需求文档" onClose={() => setUploadOpen(false)} footer={<><Btn v="ghost" onClick={() => setUploadOpen(false)}>取消</Btn><Btn onClick={upload} disabled={busy}>{busy ? "上传解析中…" : "上传并解析"}</Btn></>}>
+      <Modal open={uploadOpen} title="上传需求文档" onClose={() => setUploadOpen(false)} footer={<><Btn v="ghost" onClick={() => setUploadOpen(false)}>取消</Btn><Btn loading={busy} onClick={upload}>{busy ? "上传解析中…" : "上传并解析"}</Btn></>}>
         <div className="space-y-3">
           <Field label="主需求名称" hint="留空则使用第一个文件名"><Input className="w-full" value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} /></Field>
-          <div className="border border-dashed border-slate-300 rounded-lg p-6 text-center text-xs text-slate-500">
-            <div className="mb-2">支持 PDF / DOCX / Markdown / TXT，可一次选择多个文件</div>
-            <Btn v="ghost" onClick={() => fileRef.current?.click()}>选择文件</Btn>
+          <div className="rounded-xl border border-dashed border-ink-300 bg-ink-50/50 p-6 text-center text-[12px] text-ink-500">
+            <div className="mb-3">支持 PDF / DOCX / Markdown / TXT，可一次选择多个文件</div>
+            <Btn v="secondary" size="sm" onClick={() => fileRef.current?.click()}>选择文件</Btn>
             <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.md,.markdown,.txt" className="hidden" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
-            {files.length > 0 && <div className="mt-3 text-slate-700">{files.map((file) => file.name).join("、")}</div>}
+            {files.length > 0 && <div className="mt-3 text-ink-700">{files.map((file) => file.name).join("、")}</div>}
           </div>
-          <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={autoSplit} onChange={(e) => setAutoSplit(e.target.checked)} />上传后自动调用 AI 拆分主/子需求</label>
-          <div className="text-[11px] text-slate-500">原文件会保存到服务器，解析后的文本用于生成子需求草案；确认后才创建子需求。</div>
+          <label className="flex items-center gap-2 text-[12px] text-ink-600"><input type="checkbox" className="h-3.5 w-3.5 accent-brand-500" checked={autoSplit} onChange={(e) => setAutoSplit(e.target.checked)} />上传后自动调用 AI 拆分主/子需求</label>
+          <div className="text-[11px] leading-5 text-ink-500">原文件会保存到服务器，解析后的文本用于生成子需求草案；确认后才创建子需求。</div>
         </div>
       </Modal>
     </>

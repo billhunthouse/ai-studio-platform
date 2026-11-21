@@ -13,16 +13,16 @@ export function DetailDrawer({ open, title, onClose, fields, children, footer, w
   return (
     <Drawer open={open} title={title} onClose={onClose} footer={footer} width={width}>
       {fields && fields.length > 0 && (
-        <dl className="text-xs space-y-2.5">
+        <dl className="space-y-2.5 text-[12px]">
           {fields.map((f) => (
             <div key={f.label} className="flex justify-between gap-4">
-              <dt className="text-slate-500 shrink-0">{f.label}</dt>
-              <dd className="text-right text-slate-800 break-all">{f.value}</dd>
+              <dt className="shrink-0 text-ink-500">{f.label}</dt>
+              <dd className="break-all text-right font-medium text-ink-800">{f.value}</dd>
             </div>
           ))}
         </dl>
       )}
-      {children && <div className="mt-4 pt-4 border-t border-slate-100">{children}</div>}
+      {children && <div className="mt-4 border-t border-ink-100 pt-4">{children}</div>}
     </Drawer>
   );
 }

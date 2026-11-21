@@ -139,7 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }), [projects, projectsReady, projectId, project, projectRole, isAdmin, setProjectId, refreshProjects, addTask, retryTask, removeTask, clearCompleted, dockOpen, toasts, toast, user]);
 
   if (user && !projectsReady) {
-    return <div className="h-screen grid place-items-center bg-slate-100 text-xs text-slate-500">正在加载项目…</div>;
+    return <div className="h-screen grid place-items-center bg-ink-100 text-xs text-ink-500">正在加载项目…</div>;
   }
 
   return (

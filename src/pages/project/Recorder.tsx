@@ -90,16 +90,16 @@ export function Recorder() {
       <Card title="录制控制">
         <div className="space-y-3 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">浏览器</span>
+            <span className="text-ink-500">浏览器</span>
             <Select opts={["Chromium", "Firefox", "WebKit"]} value={browser} onChange={(e) => setBrowser(e.target.value)} />
           </div>
-          <div className={`rounded-md p-3 border ${recording ? "bg-rose-50 border-rose-200" : "bg-slate-50 border-slate-200"}`}>
+          <div className={`rounded-md p-3 border ${recording ? "bg-rose-50 border-rose-200" : "bg-ink-50 border-line"}`}>
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${recording ? "bg-rose-500 animate-pulse" : "bg-slate-300"}`} />
+              <span className={`w-2 h-2 rounded-full ${recording ? "bg-rose-500 animate-pulse" : "bg-ink-300"}`} />
               <span>{recording ? "录制中" : "未开始"}</span>
-              <span className="ml-auto font-mono text-slate-500">{Math.floor(elapsed / 60).toString().padStart(2, "0")}:{(elapsed % 60).toString().padStart(2, "0")}</span>
+              <span className="ml-auto font-mono text-ink-500">{Math.floor(elapsed / 60).toString().padStart(2, "0")}:{(elapsed % 60).toString().padStart(2, "0")}</span>
             </div>
-            <div className="text-[11px] text-slate-500 mt-2">已捕获 {data.length} 个步骤</div>
+            <div className="text-[11px] text-ink-500 mt-2">已捕获 {data.length} 个步骤</div>
           </div>
           <div className="flex gap-2">
             {recording ? <Btn v="danger" onClick={stop}>停止录制</Btn> : <Btn onClick={start}>开始录制</Btn>}
@@ -109,7 +109,7 @@ export function Recorder() {
             <Btn v="ghost" onClick={saveScript}>保存为脚本</Btn>
             <Btn v="ghost" onClick={clear}>清空步骤</Btn>
           </div>
-          <div className="text-[11px] text-slate-500 leading-relaxed">录制会捕获点击、输入、等待与断言，回放结果写入「执行记录」并附带截图/视频。</div>
+          <div className="text-[11px] text-ink-500 leading-relaxed">录制会捕获点击、输入、等待与断言，回放结果写入「执行记录」并附带截图/视频。</div>
         </div>
       </Card>
 

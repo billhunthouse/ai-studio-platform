@@ -54,7 +54,7 @@ export default function MonacoEditorImpl({ value, onChange, language = "yaml", h
         onChange={(v) => onChange?.(v ?? "")}
         theme="ast-dark"
         beforeMount={(m) => m.editor.defineTheme("ast-dark", DARK_THEME)}
-        loading={<div className="h-full grid place-items-center text-xs text-slate-300">编辑器加载中…</div>}
+        loading={<div className="h-full grid place-items-center text-xs text-ink-300">编辑器加载中…</div>}
         options={{
           minimap: { enabled: false },
           fontSize: 12,

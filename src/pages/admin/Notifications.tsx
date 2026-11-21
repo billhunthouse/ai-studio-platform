@@ -47,7 +47,7 @@ export function Notifications() {
             </>
           )}
         />
-        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+        <div className="mt-3 flex items-center gap-2 text-xs text-ink-500">
           <Switch checked={globalOn} onChange={(v) => { setGlobalOn(v); toast(v ? "已开启全局通知" : "已关闭全局通知"); }} label="全局通知" />
           全局通知开关（关闭后所有渠道静默）
         </div>

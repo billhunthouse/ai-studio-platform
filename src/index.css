@@ -1,1 +1,247 @@
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dbe6ff;
+  --color-brand-200: #c7d7ff;
+  --color-brand-300: #9db6ff;
+  --color-brand-400: #6b8cff;
+  --color-brand-500: #2d5bff;
+  --color-brand-600: #1f46e0;
+  --color-brand-700: #1838b8;
+
+  --color-ink-950: #0b1220;
+  --color-ink-900: #0f172a;
+  --color-ink-800: #1e293b;
+  --color-ink-700: #334155;
+  --color-ink-600: #475569;
+  --color-ink-500: #64748b;
+  --color-ink-400: #94a3b8;
+  --color-ink-300: #cbd5e1;
+  --color-ink-200: #e2e8f0;
+  --color-ink-100: #f1f5f9;
+  --color-ink-50: #f8fafc;
+
+  --color-surface: #f5f7fb;
+  --color-line: #e2e8f0;
+  --color-ai: #0891b2;
+  --color-ai-subtle: #ecfeff;
+
+  --text-label: 12px;
+  --text-table: 13px;
+  --text-body: 14px;
+
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-pop: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --shadow-modal: 0 24px 64px rgba(15, 23, 42, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(45, 91, 255, 0.18);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink-900);
+    font-size: 14px;
+  }
+
+  ::selection {
+    background: var(--color-brand-100);
+    color: var(--color-ink-950);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-300) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-ink-300);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .app-grid-bg {
+    background-image:
+      linear-gradient(to right, rgba(148, 163, 184, 0.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* LLM-wiki 学习中心：课件正文排版 */
+.course-content {
+  font-size: 13px;
+  line-height: 1.85;
+  color: #334155;
+  word-break: break-word;
+}
+
+.course-content h1 {
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 18px;
+}
+
+.course-content h2 {
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 650;
+  color: #0f172a;
+  margin: 30px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.course-content h3 {
+  font-size: 14px;
+  font-weight: 650;
+  color: #1e293b;
+  margin: 22px 0 8px;
+}
+
+.course-content h4,
+.course-content h5,
+.course-content h6 {
+  font-size: 13px;
+  font-weight: 650;
+  color: #1e293b;
+  margin: 18px 0 6px;
+}
+
+.course-content p {
+  margin: 9px 0;
+}
+
+.course-content ul,
+.course-content ol {
+  margin: 9px 0;
+  padding-left: 22px;
+}
+
+.course-content ul {
+  list-style: disc;
+}
+
+.course-content ol {
+  list-style: decimal;
+}
+
+.course-content li {
+  margin: 4px 0;
+}
+
+.course-content strong {
+  font-weight: 650;
+  color: #0f172a;
+}
+
+.course-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.course-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  color: #be123c;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.course-content pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  overflow-x: auto;
+  line-height: 1.7;
+}
+
+.course-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 12px;
+  white-space: pre;
+}
+
+.course-content blockquote {
+  margin: 12px 0;
+  padding: 8px 14px;
+  border-left: 3px solid #60a5fa;
+  background: #eff6ff;
+  color: #1e40af;
+  border-radius: 0 6px 6px 0;
+}
+
+.course-content blockquote p {
+  margin: 0;
+}
+
+.course-content hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 22px 0;
+}
+
+.course-table {
+  margin: 12px 0;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.course-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.course-content th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.course-content td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.course-content tr:last-child td {
+  border-bottom: 0;
+}

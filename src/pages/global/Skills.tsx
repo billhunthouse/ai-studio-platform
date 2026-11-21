@@ -85,7 +85,7 @@ export function Skills() {
     <div>
       <div className="flex gap-2 mb-4">
         {CATEGORIES.map((t) => (
-          <button key={t} onClick={() => setTag(t)} className={cx("px-3 h-7 rounded-full text-xs border", tag === t ? "bg-blue-600 text-white border-blue-600" : "bg-white border-slate-300")}>{t}</button>
+          <button key={t} onClick={() => setTag(t)} className={cx("px-3 h-7 rounded-full text-xs border", tag === t ? "bg-brand-500 text-white border-brand-500" : "bg-white border-ink-300")}>{t}</button>
         ))}
         <div className="flex-1" />
         <Input placeholder={isMcp ? "搜索 MCP 工具" : "搜索技能"} value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -107,9 +107,9 @@ export function Skills() {
                 <div className="font-medium text-sm">{skill.name}</div>
                 <Tag t={isMcp ? "MCP" : "Skill"} c={isMcp ? "amber" : "blue"} />
               </div>
-              <div className="text-xs text-slate-500 mt-1 h-8">{skill.description}</div>
+              <div className="text-xs text-ink-500 mt-1 h-8">{skill.description}</div>
               <div className="flex justify-between items-center mt-3">
-                <span className="text-[11px] text-slate-500">调用 {skill.calls} 次 · {skill.version}</span>
+                <span className="text-[11px] text-ink-500">调用 {skill.calls} 次 · {skill.version}</span>
                 <div className="flex gap-1">
                   <Btn v="ghost" onClick={() => setDetail(skill)}>详情</Btn>
                   {canEdit && <Btn v="ghost" onClick={() => openEdit(skill)}>编辑</Btn>}
@@ -124,29 +124,29 @@ export function Skills() {
       <Modal open={!!detail} title={detail ? `${detail.name} · ${detail.version}` : ""} onClose={() => setDetail(null)} footer={detail && canEdit ? <Btn onClick={() => { const target = detail; setDetail(null); openEdit(target); }}>编辑技能</Btn> : undefined}>
         {detail && (
           <div className="text-xs space-y-3">
-            <p className="text-slate-600 leading-relaxed">{detail.description}</p>
+            <p className="text-ink-600 leading-relaxed">{detail.description}</p>
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-slate-50 rounded p-2"><div className="text-slate-500 text-[11px]">分类</div>{detail.category}</div>
-              <div className="bg-slate-50 rounded p-2"><div className="text-slate-500 text-[11px]">类型</div>{detail.kind}</div>
-              <div className="bg-slate-50 rounded p-2"><div className="text-slate-500 text-[11px]">调用次数</div>{detail.calls}</div>
+              <div className="bg-ink-50 rounded p-2"><div className="text-ink-500 text-[11px]">分类</div>{detail.category}</div>
+              <div className="bg-ink-50 rounded p-2"><div className="text-ink-500 text-[11px]">类型</div>{detail.kind}</div>
+              <div className="bg-ink-50 rounded p-2"><div className="text-ink-500 text-[11px]">调用次数</div>{detail.calls}</div>
             </div>
             <div>
-              <div className="font-medium text-slate-700 mb-2">参数说明</div>
+              <div className="font-medium text-ink-700 mb-2">参数说明</div>
               <table className="w-full text-xs">
-                <thead><tr className="bg-slate-50 text-slate-500 text-left"><th className="px-2 py-1.5">参数</th><th className="px-2 py-1.5">类型</th><th className="px-2 py-1.5">必填</th><th className="px-2 py-1.5">说明</th></tr></thead>
+                <thead><tr className="bg-ink-50 text-ink-500 text-left"><th className="px-2 py-1.5">参数</th><th className="px-2 py-1.5">类型</th><th className="px-2 py-1.5">必填</th><th className="px-2 py-1.5">说明</th></tr></thead>
                 <tbody>
                   {detail.params.map((param) => (
-                    <tr key={param.name} className="border-t border-slate-100">
+                    <tr key={param.name} className="border-t border-ink-100">
                       <td className="px-2 py-1.5 font-mono">{param.name}</td>
                       <td className="px-2 py-1.5">{param.type}</td>
                       <td className="px-2 py-1.5">{param.required ? <Tag t="必填" c="amber" /> : "否"}</td>
-                      <td className="px-2 py-1.5 text-slate-600">{param.desc}</td>
+                      <td className="px-2 py-1.5 text-ink-600">{param.desc}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {detail.prompt && <div><div className="font-medium text-slate-700 mb-1">提示词</div><pre className="bg-slate-900 text-emerald-300 rounded p-3 text-[11px] max-h-48 overflow-auto whitespace-pre-wrap">{detail.prompt}</pre></div>}
+            {detail.prompt && <div><div className="font-medium text-ink-700 mb-1">提示词</div><pre className="bg-slate-900 text-emerald-300 rounded p-3 text-[11px] max-h-48 overflow-auto whitespace-pre-wrap">{detail.prompt}</pre></div>}
           </div>
         )}
       </Modal>

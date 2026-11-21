@@ -1,0 +1,1893 @@
+{
+  "summary": {
+    "requirementTotal": 52,
+    "pageTotal": 41,
+    "apiTotal": 137,
+    "reqFullCoverage": 49,
+    "reqFullRate": 0.942,
+    "layerHitRate": {
+      "page": 0.962,
+      "api": 0.962,
+      "code_artifact": 0.962,
+      "table": 0.942
+    },
+    "layerHit": {
+      "page": 50,
+      "api": 50,
+      "code_artifact": 50,
+      "table": 49
+    }
+  },
+  "requirementGaps": [
+    {
+      "id": "EXT-AI-001",
+      "title": "【AI助手】商城 C 端 AI 助手浮窗（商品/知识/订单）",
+      "priority": "P1",
+      "counts": {
+        "page": 1,
+        "api": 1,
+        "code_artifact": 1,
+        "table": 0
+      },
+      "missing": [
+        "table"
+      ],
+      "pages": [
+        "AI 助手浮窗"
+      ],
+      "full": false
+    },
+    {
+      "id": "V1-FR-024",
+      "title": "【弹窗与提示】全站统一的确认/表单/拒绝/提示规范",
+      "priority": "P0",
+      "counts": {
+        "page": 0,
+        "api": 0,
+        "code_artifact": 0,
+        "table": 0
+      },
+      "missing": [
+        "page",
+        "api",
+        "code_artifact",
+        "table"
+      ],
+      "pages": [],
+      "full": false
+    },
+    {
+      "id": "V2-FR-026",
+      "title": "【全局】弹窗与提示规范（C 端）",
+      "priority": "P0",
+      "counts": {
+        "page": 0,
+        "api": 0,
+        "code_artifact": 0,
+        "table": 0
+      },
+      "missing": [
+        "page",
+        "api",
+        "code_artifact",
+        "table"
+      ],
+      "pages": [],
+      "full": false
+    }
+  ],
+  "apiGaps": [
+    {
+      "id": "api:POST:/api/customer-service/chat",
+      "method": "POST",
+      "path": "/api/customer-service/chat",
+      "summary": "AI 助手对话",
+      "auth": "public",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/products/{id}",
+      "method": "GET",
+      "path": "/admin/products/{id}",
+      "summary": "获取商品详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/orders/{id}",
+      "method": "GET",
+      "path": "/admin/orders/{id}",
+      "summary": "获取订单详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 5,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/orders/{id}/ship",
+      "method": "POST",
+      "path": "/admin/orders/{id}/ship",
+      "summary": "订单发货",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 2,
+      "tableCount": 5,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/after-sales/{id}",
+      "method": "GET",
+      "path": "/admin/after-sales/{id}",
+      "summary": "获取售后详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/after-sales/{id}/audit",
+      "method": "POST",
+      "path": "/admin/after-sales/{id}/audit",
+      "summary": "审核售后单",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 2,
+      "tableCount": 3,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/dashboard/stats",
+      "method": "GET",
+      "path": "/admin/dashboard/stats",
+      "summary": "获取工作台统计",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 5,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/site/brand",
+      "method": "GET",
+      "path": "/admin/site/brand",
+      "summary": "获取站点品牌",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/home/slots/{code}",
+      "method": "GET",
+      "path": "/admin/home/slots/{code}",
+      "summary": "运营位详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/home/slots/{code}",
+      "method": "PUT",
+      "path": "/admin/home/slots/{code}",
+      "summary": "保存运营位",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 6,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/reviews",
+      "method": "GET",
+      "path": "/admin/reviews",
+      "summary": "评价分页",
+      "auth": "login:admin",
+      "paramCount": 6,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/reviews/{id}/status",
+      "method": "PUT",
+      "path": "/admin/reviews/{id}/status",
+      "summary": "隐藏/恢复评价",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/reviews/{id}/reply",
+      "method": "PUT",
+      "path": "/admin/reviews/{id}/reply",
+      "summary": "回复评价",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/in-out",
+      "method": "GET",
+      "path": "/admin/in-out",
+      "summary": "出入库分页",
+      "auth": "login:admin",
+      "paramCount": 7,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/in-out",
+      "method": "POST",
+      "path": "/admin/in-out",
+      "summary": "创建出入库单",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 4,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/brands",
+      "method": "POST",
+      "path": "/admin/brands",
+      "summary": "创建品牌",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/brands/{id}",
+      "method": "PUT",
+      "path": "/admin/brands/{id}",
+      "summary": "更新品牌",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/brands/{id}",
+      "method": "DELETE",
+      "path": "/admin/brands/{id}",
+      "summary": "删除品牌",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/attributes",
+      "method": "POST",
+      "path": "/admin/attributes",
+      "summary": "创建属性",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/products/{id}/on",
+      "method": "PUT",
+      "path": "/admin/products/{id}/on",
+      "summary": "商品上架",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/attributes/{id}",
+      "method": "PUT",
+      "path": "/admin/attributes/{id}",
+      "summary": "更新属性",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/categories",
+      "method": "GET",
+      "path": "/admin/categories",
+      "summary": "获取类目列表",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/categories",
+      "method": "POST",
+      "path": "/admin/categories",
+      "summary": "创建类目",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/categories/{id}",
+      "method": "PUT",
+      "path": "/admin/categories/{id}",
+      "summary": "更新类目",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/home",
+      "method": "GET",
+      "path": "/api/home",
+      "summary": "GET /api/home",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 5,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/products",
+      "method": "GET",
+      "path": "/api/products",
+      "summary": "GET /api/products",
+      "auth": "public",
+      "paramCount": 4,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/products/{spuId}",
+      "method": "GET",
+      "path": "/api/products/{spuId}",
+      "summary": "GET /api/products/{spuId}",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/categories/{id}",
+      "method": "DELETE",
+      "path": "/admin/categories/{id}",
+      "summary": "删除类目",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 3,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/site/brand",
+      "method": "GET",
+      "path": "/api/site/brand",
+      "summary": "GET /api/site/brand",
+      "auth": "public",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/categories",
+      "method": "GET",
+      "path": "/api/categories",
+      "summary": "GET /api/categories",
+      "auth": "public",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/search",
+      "method": "GET",
+      "path": "/api/search",
+      "summary": "GET /api/search",
+      "auth": "public",
+      "paramCount": 3,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/api/cart/items/{id}",
+      "method": "PUT",
+      "path": "/api/cart/items/{id}",
+      "summary": "PUT /api/cart/items/{id}",
+      "auth": "login:customer",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/api/cart/items/{id}",
+      "method": "DELETE",
+      "path": "/api/cart/items/{id}",
+      "summary": "DELETE /api/cart/items/{id}",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/cart/clear-invalid",
+      "method": "POST",
+      "path": "/api/cart/clear-invalid",
+      "summary": "POST /api/cart/clear-invalid",
+      "auth": "login:customer",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/addresses",
+      "method": "GET",
+      "path": "/api/addresses",
+      "summary": "GET /api/addresses",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 7,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/addresses",
+      "method": "POST",
+      "path": "/api/addresses",
+      "summary": "POST /api/addresses",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 7,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/products",
+      "method": "POST",
+      "path": "/admin/products",
+      "summary": "创建商品",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 11,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/cart",
+      "method": "GET",
+      "path": "/api/cart",
+      "summary": "GET /api/cart",
+      "auth": "login:customer",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/api/addresses/{id}",
+      "method": "PUT",
+      "path": "/api/addresses/{id}",
+      "summary": "PUT /api/addresses/{id}",
+      "auth": "login:customer",
+      "paramCount": 2,
+      "bodyCount": 7,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/api/addresses/{id}",
+      "method": "DELETE",
+      "path": "/api/addresses/{id}",
+      "summary": "DELETE /api/addresses/{id}",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/favorites",
+      "method": "GET",
+      "path": "/api/favorites",
+      "summary": "GET /api/favorites",
+      "auth": "login:customer",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/favorites/{spuId}",
+      "method": "POST",
+      "path": "/api/favorites/{spuId}",
+      "summary": "POST /api/favorites/{spuId}",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/api/addresses/{id}/default",
+      "method": "PUT",
+      "path": "/api/addresses/{id}/default",
+      "summary": "PUT /api/addresses/{id}/default",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/api/favorites/{spuId}",
+      "method": "DELETE",
+      "path": "/api/favorites/{spuId}",
+      "summary": "DELETE /api/favorites/{spuId}",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/history",
+      "method": "GET",
+      "path": "/api/history",
+      "summary": "GET /api/history",
+      "auth": "login:customer",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/api/history",
+      "method": "DELETE",
+      "path": "/api/history",
+      "summary": "DELETE /api/history",
+      "auth": "login:customer",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/orders",
+      "method": "POST",
+      "path": "/api/orders",
+      "summary": "创建订单并计算优惠",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/orders/{id}",
+      "method": "GET",
+      "path": "/api/orders/{id}",
+      "summary": "订单详情",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/orders/{id}/confirm",
+      "method": "POST",
+      "path": "/api/orders/{id}/confirm",
+      "summary": "POST /api/orders/{id}/confirm",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/payment/sandbox",
+      "method": "POST",
+      "path": "/api/payment/sandbox",
+      "summary": "POST /api/payment/sandbox",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/payment/{orderId}/status",
+      "method": "GET",
+      "path": "/api/payment/{orderId}/status",
+      "summary": "GET /api/payment/{orderId}/status",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/orders/{id}/cancel",
+      "method": "POST",
+      "path": "/api/orders/{id}/cancel",
+      "summary": "POST /api/orders/{id}/cancel",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/after-sales",
+      "method": "POST",
+      "path": "/api/after-sales",
+      "summary": "提交退款/退货申请",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/after-sales",
+      "method": "GET",
+      "path": "/api/after-sales",
+      "summary": "GET /api/after-sales",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/after-sales/{id}",
+      "method": "GET",
+      "path": "/api/after-sales/{id}",
+      "summary": "GET /api/after-sales/{id}",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/reviews",
+      "method": "POST",
+      "path": "/api/reviews",
+      "summary": "发表评价",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 3,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/stocks",
+      "method": "GET",
+      "path": "/admin/stocks",
+      "summary": "分页查询库存",
+      "auth": "login:admin",
+      "paramCount": 6,
+      "bodyCount": 0,
+      "tableCount": 3,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/stocks/adjust",
+      "method": "PUT",
+      "path": "/admin/stocks/adjust",
+      "summary": "调整库存",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 4,
+      "tableCount": 3,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/products/{id}/off",
+      "method": "PUT",
+      "path": "/admin/products/{id}/off",
+      "summary": "商品下架",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/auth/sms/send",
+      "method": "POST",
+      "path": "/api/auth/sms/send",
+      "summary": "发送验证码",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 1,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/auth/logout",
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "summary": "退出登录",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/products/batch-off",
+      "method": "PUT",
+      "path": "/admin/products/batch-off",
+      "summary": "批量下架",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/api/me",
+      "method": "PUT",
+      "path": "/api/me",
+      "summary": "更新资料",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段"
+      ]
+    },
+    {
+      "id": "api:GET:/api/files/view",
+      "method": "GET",
+      "path": "/api/files/view",
+      "summary": "查看文件",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/files/upload",
+      "method": "POST",
+      "path": "/api/files/upload",
+      "summary": "直传上传",
+      "auth": "login:customer",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/files/presign",
+      "method": "POST",
+      "path": "/api/files/presign",
+      "summary": "POST /api/files/presign",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/files/confirm",
+      "method": "POST",
+      "path": "/api/files/confirm",
+      "summary": "POST /api/files/confirm",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 4,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/dicts",
+      "method": "POST",
+      "path": "/admin/dicts",
+      "summary": "创建字典",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 3,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/products/{id}",
+      "method": "PUT",
+      "path": "/admin/products/{id}",
+      "summary": "更新商品",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 11,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/products/{id}",
+      "method": "DELETE",
+      "path": "/admin/products/{id}",
+      "summary": "删除商品",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/dicts/{id}",
+      "method": "PUT",
+      "path": "/admin/dicts/{id}",
+      "summary": "更新字典",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 3,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/dicts/{id}",
+      "method": "DELETE",
+      "path": "/admin/dicts/{id}",
+      "summary": "删除字典",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/dict-items/{id}",
+      "method": "PUT",
+      "path": "/admin/dict-items/{id}",
+      "summary": "更新字典项",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/dict-items/{id}",
+      "method": "DELETE",
+      "path": "/admin/dict-items/{id}",
+      "summary": "删除字典项",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/system-configs",
+      "method": "GET",
+      "path": "/admin/system-configs",
+      "summary": "查询系统配置",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/system-configs/{id}",
+      "method": "PUT",
+      "path": "/admin/system-configs/{id}",
+      "summary": "更新系统配置",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/auth/logout",
+      "method": "POST",
+      "path": "/admin/auth/logout",
+      "summary": "退出登录",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/warehouses",
+      "method": "GET",
+      "path": "/admin/warehouses",
+      "summary": "获取仓库列表",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/warehouses",
+      "method": "POST",
+      "path": "/admin/warehouses",
+      "summary": "创建仓库",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 2,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/auth/me",
+      "method": "GET",
+      "path": "/admin/auth/me",
+      "summary": "获取当前用户信息",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/operation-logs/export",
+      "method": "GET",
+      "path": "/admin/operation-logs/export",
+      "summary": "导出操作日志",
+      "auth": "login:admin",
+      "paramCount": 5,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/orders/export",
+      "method": "GET",
+      "path": "/admin/orders/export",
+      "summary": "导出订单 CSV",
+      "auth": "login:admin",
+      "paramCount": 7,
+      "bodyCount": 0,
+      "tableCount": 5,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/roles",
+      "method": "GET",
+      "path": "/admin/roles",
+      "summary": "分页查询角色",
+      "auth": "login:admin",
+      "paramCount": 4,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/attributes/{id}",
+      "method": "DELETE",
+      "path": "/admin/attributes/{id}",
+      "summary": "删除属性",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/cart/items",
+      "method": "POST",
+      "path": "/api/cart/items",
+      "summary": "POST /api/cart/items",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/dict-items",
+      "method": "POST",
+      "path": "/admin/dict-items",
+      "summary": "创建字典项",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/roles/all",
+      "method": "GET",
+      "path": "/admin/roles/all",
+      "summary": "查询全部角色",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/roles",
+      "method": "POST",
+      "path": "/admin/roles",
+      "summary": "创建角色",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 6,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/site/brand",
+      "method": "PUT",
+      "path": "/admin/site/brand",
+      "summary": "更新站点品牌",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/home/slots",
+      "method": "GET",
+      "path": "/admin/home/slots",
+      "summary": "运营位列表",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/warehouses/{id}",
+      "method": "PUT",
+      "path": "/admin/warehouses/{id}",
+      "summary": "更新仓库",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 2,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/roles/{id}",
+      "method": "PUT",
+      "path": "/admin/roles/{id}",
+      "summary": "更新角色",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 6,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/roles/{id}",
+      "method": "DELETE",
+      "path": "/admin/roles/{id}",
+      "summary": "删除角色",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/files/view",
+      "method": "GET",
+      "path": "/admin/files/view",
+      "summary": "查看/下载文件",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/files/upload",
+      "method": "POST",
+      "path": "/admin/files/upload",
+      "summary": "直传上传文件",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/files/presign",
+      "method": "POST",
+      "path": "/admin/files/presign",
+      "summary": "获取预签名上传地址",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/files/confirm",
+      "method": "POST",
+      "path": "/admin/files/confirm",
+      "summary": "确认上传完成",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 4,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/customers",
+      "method": "GET",
+      "path": "/admin/customers",
+      "summary": "分页查询会员",
+      "auth": "login:admin",
+      "paramCount": 6,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/customers/{id}",
+      "method": "GET",
+      "path": "/admin/customers/{id}",
+      "summary": "会员详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/customers/{id}/status",
+      "method": "PUT",
+      "path": "/admin/customers/{id}/status",
+      "summary": "冻结/解冻会员",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/depts/tree",
+      "method": "GET",
+      "path": "/admin/depts/tree",
+      "summary": "部门树",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/depts",
+      "method": "GET",
+      "path": "/admin/depts",
+      "summary": "部门列表",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/depts",
+      "method": "POST",
+      "path": "/admin/depts",
+      "summary": "创建部门",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 4,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/depts/{id}",
+      "method": "PUT",
+      "path": "/admin/depts/{id}",
+      "summary": "更新部门",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 4,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/depts/{id}",
+      "method": "DELETE",
+      "path": "/admin/depts/{id}",
+      "summary": "删除部门",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/users",
+      "method": "GET",
+      "path": "/admin/users",
+      "summary": "分页查询用户",
+      "auth": "login:admin",
+      "paramCount": 6,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/users/{id}",
+      "method": "GET",
+      "path": "/admin/users/{id}",
+      "summary": "获取用户详情",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/users",
+      "method": "POST",
+      "path": "/admin/users",
+      "summary": "创建用户",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 8,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/categories/tree",
+      "method": "GET",
+      "path": "/admin/categories/tree",
+      "summary": "获取类目树",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/users/{id}",
+      "method": "PUT",
+      "path": "/admin/users/{id}",
+      "summary": "更新用户",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 8,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/users/{id}/password",
+      "method": "PUT",
+      "path": "/admin/users/{id}/password",
+      "summary": "重置密码",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/users/{id}",
+      "method": "DELETE",
+      "path": "/admin/users/{id}",
+      "summary": "删除用户",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/permissions/tree",
+      "method": "GET",
+      "path": "/admin/permissions/tree",
+      "summary": "权限树",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 4,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/permissions",
+      "method": "GET",
+      "path": "/admin/permissions",
+      "summary": "权限列表",
+      "auth": "login:admin",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/permissions",
+      "method": "POST",
+      "path": "/admin/permissions",
+      "summary": "创建权限",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 10,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/me",
+      "method": "GET",
+      "path": "/api/me",
+      "summary": "当前顾客资料",
+      "auth": "login:customer",
+      "paramCount": 0,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无查询/路径参数（可能只按路径取数）"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/users/{id}/status",
+      "method": "PUT",
+      "path": "/admin/users/{id}/status",
+      "summary": "更新用户状态",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 2,
+      "hasCode": true,
+      "gaps": [
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:PUT:/admin/permissions/{id}",
+      "method": "PUT",
+      "path": "/admin/permissions/{id}",
+      "summary": "更新权限",
+      "auth": "login:admin",
+      "paramCount": 2,
+      "bodyCount": 10,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:DELETE:/admin/permissions/{id}",
+      "method": "DELETE",
+      "path": "/admin/permissions/{id}",
+      "summary": "删除权限",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 1,
+      "hasCode": true,
+      "gaps": [
+        "无响应结构"
+      ]
+    }
+  ],
+  "pagesWithoutApi": [],
+  "apiWithNoTable": [
+    {
+      "id": "api:POST:/api/customer-service/chat",
+      "method": "POST",
+      "path": "/api/customer-service/chat",
+      "summary": "AI 助手对话",
+      "auth": "public",
+      "paramCount": 2,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "写接口无请求体字段",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/api/files/view",
+      "method": "GET",
+      "path": "/api/files/view",
+      "summary": "查看文件",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/api/files/presign",
+      "method": "POST",
+      "path": "/api/files/presign",
+      "summary": "POST /api/files/presign",
+      "auth": "login:customer",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:GET:/admin/files/view",
+      "method": "GET",
+      "path": "/admin/files/view",
+      "summary": "查看/下载文件",
+      "auth": "public",
+      "paramCount": 1,
+      "bodyCount": 0,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    },
+    {
+      "id": "api:POST:/admin/files/presign",
+      "method": "POST",
+      "path": "/admin/files/presign",
+      "summary": "获取预签名上传地址",
+      "auth": "login:admin",
+      "paramCount": 1,
+      "bodyCount": 5,
+      "tableCount": 0,
+      "hasCode": true,
+      "gaps": [
+        "未关联数据表",
+        "无响应结构"
+      ]
+    }
+  ],
+  "drift": {
+    "documentedNotInCode": [],
+    "codeNotDocumented": [
+      "GET:/admin/auth/me",
+      "GET:/admin/categories",
+      "GET:/admin/customers/{id}",
+      "GET:/admin/depts",
+      "GET:/admin/dict-items/by-code",
+      "GET:/admin/files/view",
+      "GET:/admin/permissions",
+      "GET:/admin/users/{id}",
+      "GET:/admin/warehouses",
+      "GET:/api/cart",
+      "GET:/api/files/view",
+      "GET:/api/payment/{orderId}/status",
+      "GET:/api/products/{spuId}/reviews",
+      "GET:/api/site/brand",
+      "POST:/admin/auth/logout",
+      "POST:/admin/auth/refresh",
+      "POST:/admin/files/confirm",
+      "POST:/admin/files/presign",
+      "POST:/admin/warehouses",
+      "POST:/api/auth/phone",
+      "POST:/api/auth/refresh",
+      "POST:/api/files/confirm",
+      "POST:/api/files/presign",
+      "PUT:/admin/warehouses/{id}",
+      "PUT:/api/addresses/{id}"
+    ],
+    "documented": 112,
+    "scanned": 137
+  }
+}

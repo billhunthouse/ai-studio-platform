@@ -26,7 +26,10 @@ const ProfileKeys = page(() => import("@/pages/global/ProfileKeys"), "ProfileKey
 const Overview = page(() => import("@/pages/project/Overview"), "Overview");
 const RequirementList = page(() => import("@/pages/project/RequirementList"), "RequirementList");
 const RequirementDetail = page(() => import("@/pages/project/RequirementDetail"), "RequirementDetail");
+const TraceCenter = page(() => import("@/pages/project/TraceCenter"), "TraceCenter");
+const TraceEntity = page(() => import("@/pages/project/TraceEntity"), "TraceEntity");
 const CaseList = page(() => import("@/pages/project/CaseList"), "CaseList");
+const CaseDetail = page(() => import("@/pages/project/CaseDetail"), "CaseDetail");
 const CaseGenerate = page(() => import("@/pages/project/CaseGenerate"), "CaseGenerate");
 const CaseReview = page(() => import("@/pages/project/CaseReview"), "CaseReview");
 const ApiManage = page(() => import("@/pages/project/ApiManage"), "ApiManage");
@@ -45,6 +48,7 @@ const Workflow = page(() => import("@/pages/project/Workflow"), "Workflow");
 const KnowledgeList = page(() => import("@/pages/project/KnowledgeList"), "KnowledgeList");
 const Documents = page(() => import("@/pages/project/Documents"), "Documents");
 const Recall = page(() => import("@/pages/project/Recall"), "Recall");
+const LearningCenter = page(() => import("@/pages/project/LearningCenter"), "LearningCenter");
 const TaskList = page(() => import("@/pages/project/TaskList"), "TaskList");
 const AgentEval = page(() => import("@/pages/project/AgentEval"), "AgentEval");
 const VersionCompare = page(() => import("@/pages/project/VersionCompare"), "VersionCompare");
@@ -91,7 +95,10 @@ export function AppRouter() {
           <Route path="overview" element={<Overview />} />
           <Route path="requirements" element={<RequirementList />} />
           <Route path="requirements/:rid" element={<RequirementDetail />} />
+          <Route path="trace" element={<TraceCenter />} />
+          <Route path="trace/entity" element={<TraceEntity />} />
           <Route path="testcases" element={<CaseList />} />
+          <Route path="testcases/:caseId" element={<CaseDetail />} />
           <Route path="testcases/generate" element={<CaseGenerate />} />
           <Route path="testcases/review" element={<CaseReview />} />
           <Route path="api" element={<ApiManage />} />
@@ -110,6 +117,7 @@ export function AppRouter() {
           <Route path="knowledge" element={<KnowledgeList />} />
           <Route path="knowledge/documents" element={<Documents />} />
           <Route path="knowledge/recall" element={<Recall />} />
+          <Route path="knowledge/learning" element={<LearningCenter />} />
           <Route path="tasks" element={<TaskList />} />
           <Route path="tasks/agent-eval" element={<AgentEval />} />
           <Route path="tasks/compare" element={<VersionCompare />} />

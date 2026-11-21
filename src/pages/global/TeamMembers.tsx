@@ -57,7 +57,7 @@ export function TeamMembers() {
         rows={list.map((m) => [
           m.name,
           m.email,
-          <select key="role" value={m.role} onChange={(e) => changeRole(m.id, e.target.value)} className="h-7 px-1.5 rounded border border-slate-300 text-xs bg-white">
+          <select key="role" value={m.role} onChange={(e) => changeRole(m.id, e.target.value)} className="h-7 px-1.5 rounded border border-ink-300 text-xs bg-white">
             {ROLE_OPTIONS.map((r) => <option key={r}>{r}</option>)}
           </select>,
           String(m.projectCount),
@@ -70,13 +70,13 @@ export function TeamMembers() {
         <div className="space-y-3">
           <Field label="邮箱"><Input className="w-full" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="name@corp.com" /></Field>
           <Field label="角色"><Select opts={ROLE_OPTIONS} className="w-full" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as RoleName })} /></Field>
-          <div className="text-[11px] text-slate-500">平台采用邀请制。生成链接后发给成员，成员设置姓名和密码即可激活。</div>
+          <div className="text-[11px] text-ink-500">平台采用邀请制。生成链接后发给成员，成员设置姓名和密码即可激活。</div>
         </div>
       </Modal>
 
       <Modal open={!!inviteLink} title="邀请链接" onClose={() => setInviteLink("")} footer={<><Btn v="ghost" onClick={() => setInviteLink("")}>关闭</Btn><Btn onClick={copyInvite}>复制链接</Btn></>}>
         <Input readOnly value={inviteLink} className="w-full font-mono text-[11px]" />
-        <div className="text-[11px] text-slate-500 mt-2">链接 7 天内有效，成员激活后自动进入平台。</div>
+        <div className="text-[11px] text-ink-500 mt-2">链接 7 天内有效，成员激活后自动进入平台。</div>
       </Modal>
     </Card>
   );

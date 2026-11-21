@@ -7,11 +7,11 @@ import { Btn, Card, Field, Input, Select } from "@/components/ui";
 import { cx } from "@/lib/cx";
 
 const NODE_TYPES: [string, string][] = [
-  ["启动 App", "bg-slate-600"],
-  ["点击", "bg-blue-500"],
+  ["启动 App", "bg-ink-600"],
+  ["点击", "bg-brand-500"],
   ["输入", "bg-indigo-500"],
   ["滑动", "bg-cyan-600"],
-  ["等待", "bg-slate-500"],
+  ["等待", "bg-ink-500"],
   ["图像识别", "bg-emerald-500"],
   ["断言", "bg-violet-500"],
 ];
@@ -60,11 +60,11 @@ export function UiFlow() {
     <div className="grid grid-cols-5 gap-4">
       <Card title="步骤库">
         {NODE_TYPES.map(([t, c]) => (
-          <button key={t} onClick={() => add(t)} className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-slate-50 text-xs">
+          <button key={t} onClick={() => add(t)} className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-ink-50 text-xs">
             <span className={cx("w-2.5 h-2.5 rounded-sm", c)} />{t}
           </button>
         ))}
-        <div className="text-[11px] text-slate-500 mt-4 leading-relaxed">图像识别节点基于 OCR / 模板匹配定位控件，适合跨分辨率设备。</div>
+        <div className="text-[11px] text-ink-500 mt-4 leading-relaxed">图像识别节点基于 OCR / 模板匹配定位控件，适合跨分辨率设备。</div>
       </Card>
 
       <section className="col-span-3 bg-white rounded-lg border relative h-[480px] overflow-auto" style={{ backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)", backgroundSize: "16px 16px" }}>
@@ -74,18 +74,18 @@ export function UiFlow() {
           <Btn onClick={run}>试运行</Btn>
         </div>
         <div className="absolute left-6 top-16 w-[300px] space-y-3">
-          {nodes.length === 0 && <div className="text-xs text-slate-500 mt-20 text-center">从左侧添加步骤，构建 App 自动化流程</div>}
+          {nodes.length === 0 && <div className="text-xs text-ink-500 mt-20 text-center">从左侧添加步骤，构建 App 自动化流程</div>}
           {nodes.map((n, i) => (
             <div key={n.id} className="relative">
-              <button onClick={() => setSelected(n.id)} className={cx("w-full bg-white rounded-md border shadow-sm text-left overflow-hidden", selected === n.id ? "ring-2 ring-blue-500" : "border-slate-300")}>
+              <button onClick={() => setSelected(n.id)} className={cx("w-full bg-white rounded-md border shadow-sm text-left overflow-hidden", selected === n.id ? "ring-2 ring-blue-500" : "border-ink-300")}>
                 <div className={cx("text-[10px] text-white px-2 py-0.5 flex justify-between", color(n.type))}>
                   <span>{i + 1} · {n.type}</span>
                   <span>{n.type === "图像识别" ? "AI" : ""}</span>
                 </div>
                 <div className="px-2 py-1.5 text-xs truncate">{n.label}</div>
-                <div className="px-2 pb-1.5 text-[10px] text-slate-500 font-mono truncate">{n.config}</div>
+                <div className="px-2 pb-1.5 text-[10px] text-ink-500 font-mono truncate">{n.config}</div>
               </button>
-              {i < nodes.length - 1 && <div className="h-3 border-l-2 border-dashed border-slate-300 ml-6" />}
+              {i < nodes.length - 1 && <div className="h-3 border-l-2 border-dashed border-ink-300 ml-6" />}
             </div>
           ))}
         </div>
@@ -103,7 +103,7 @@ export function UiFlow() {
             </div>
           </div>
         ) : (
-          <div className="text-xs text-slate-500">选择画布中的步骤进行配置</div>
+          <div className="text-xs text-ink-500">选择画布中的步骤进行配置</div>
         )}
       </Card>
     </div>

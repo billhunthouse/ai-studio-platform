@@ -7,8 +7,8 @@ export function ProjectLayout() {
   const { projects, projectsReady } = useApp();
   if (!projectsReady || projects.length === 0) {
     return (
-      <div className="h-screen grid place-items-center bg-slate-100 text-xs text-slate-500">
-        正在加载项目… <a href="/dashboard" className="ml-2 text-blue-600">返回工作台</a>
+      <div className="h-screen grid place-items-center bg-ink-100 text-xs text-ink-500">
+        正在加载项目… <a href="/dashboard" className="ml-2 text-brand-600">返回工作台</a>
       </div>
     );
   }

@@ -43,24 +43,24 @@ export function ProfileSecurity() {
       </Card>
 
       <Card title="安全策略">
-        <div className="flex items-center justify-between py-3 border-b border-slate-100">
+        <div className="flex items-center justify-between py-3 border-b border-ink-100">
           <div>
             <div className="text-xs font-medium">两步验证（TOTP）</div>
-            <div className="text-[11px] text-slate-500 mt-1">登录时需输入动态验证码</div>
+            <div className="text-[11px] text-ink-500 mt-1">登录时需输入动态验证码</div>
           </div>
           <Switch checked={twoFactor} onChange={(v) => { setTwoFactor(v); toast(v ? "已开启两步验证" : "已关闭两步验证"); }} label="两步验证" />
         </div>
-        <div className="flex items-center justify-between py-3 border-b border-slate-100">
+        <div className="flex items-center justify-between py-3 border-b border-ink-100">
           <div>
             <div className="text-xs font-medium">登录邮件提醒</div>
-            <div className="text-[11px] text-slate-500 mt-1">新设备登录时发送邮件</div>
+            <div className="text-[11px] text-ink-500 mt-1">新设备登录时发送邮件</div>
           </div>
           <Switch checked={loginAlert} onChange={(v) => { setLoginAlert(v); toast(v ? "已开启登录提醒" : "已关闭登录提醒"); }} label="登录提醒" />
         </div>
         <div className="flex items-center justify-between py-3">
           <div>
             <div className="text-xs font-medium">Token 配额告警</div>
-            <div className="text-[11px] text-slate-500 mt-1">使用量超过 80% 时通知</div>
+            <div className="text-[11px] text-ink-500 mt-1">使用量超过 80% 时通知</div>
           </div>
           <Switch checked={quotaAlert} onChange={(v) => { setQuotaAlert(v); toast(v ? "已开启配额告警" : "已关闭配额告警"); }} label="配额告警" />
         </div>

@@ -14,7 +14,7 @@ import httpx
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, project_editor_scope, project_reviewer_scope, project_scope
@@ -23,15 +23,18 @@ from ..db import get_db
 from ..excel import export_testcases, import_testcases
 from ..llm import LLMError, LLMUnavailable, extract_headings, generate_testcases, heading_alignment, local_split_requirements, relevance_coverage, split_requirements
 from ..logic import generate_artifact, next_numeric_id, now_label, parse_openapi, uid
+from ..case_engine_local import STRATEGY_CN, generate as local_generate
+from ..case_runner import TOKENS as case_runner_tokens, probe_sample, run_case as run_api_case
 from ..models import Project, Requirement, RequirementFile, User
 from ..parsing import SUPPORTED_EXTENSIONS, extract_text, safe_filename
 from ..response import ok
 from ..schemas import (
-    ApiDefCreate, ApiSend, AppRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
+    AgentCaseGenerateRequest, ApiDefCreate, ApiSampleRequest, ApiSend, AppRunRequest, CaseRunRequest, ElementCreate, FlowSave, GenerateCasesRequest, GenerateRequest,
     ImportYaml, RecorderStepIn, ReviewDecision, ReviewSubmit, RunRequest, ScriptCreate, ScriptUpdate, SplitConfirm,
-    SuiteCreate, TestCaseCreate, TestCaseUpdate, ToolRun, YamlSave, RequirementCreate, RequirementUpdate,
+    SuiteCreate, TestCaseCreate, TestCaseUpdate,     ToolRun, YamlSave, RequirementCreate, RequirementUpdate, UiCompileRequest, UiRunRequest,
 )
 from ..store import store
+from ..trace_models import TraceApi
 
 router = APIRouter()
 
@@ -472,8 +475,18 @@ def list_children(
 
 # ---------------- testcases ----------------
 @router.get("/testcases")
-def list_testcases(pid: str = Depends(project_scope)) -> dict[str, Any]:
-    return ok(store.all("testCases", pid))
+def list_testcases(
+    requirementId: str | None = None,
+    pid: str = Depends(project_scope),
+) -> dict[str, Any]:
+    items = store.all("testCases", pid)
+    if requirementId:
+        items = [
+            item for item in items
+            if item.get("requirementId") == requirementId
+            or requirementId in (item.get("relatedRequirementIds") or [])
+        ]
+    return ok(items)
 
 
 @router.post("/testcases")
@@ -515,6 +528,112 @@ def delete_testcase(case_id: str, pid: str = Depends(project_editor_scope)) -> d
     return ok(None)
 
 
+@router.post("/testcases/{case_id}/run")
+def run_testcase(
+    case_id: str,
+    body: CaseRunRequest,
+    pid: str = Depends(project_scope),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """运行用例。API 用例打到真实 shang-pivot 后端执行；功能用例记录人工执行结果。"""
+    case = must_doc("testCases", case_id, pid)
+    case_type = case.get("caseType") or ("api" if case.get("relatedApi") else "functional")
+
+    def schema_lookup(path: str, method: str) -> dict[str, Any] | None:
+        row = db.scalar(
+            select(TraceApi).where(
+                TraceApi.project_id == pid, TraceApi.path == path, TraceApi.method == method)
+        )
+        return (row.request_schema or None) if row else None
+
+    if case_type == "functional":
+        # 功能测试用例：人工按步骤执行，记录结论
+        if not body.manualVerdict:
+            return ok({"mode": "manual", "case": case,
+                       "message": "功能测试用例需人工按步骤执行，请在执行面板记录结果"})
+        case["lastRun"] = {
+            "at": now_label(), "mode": "manual", "verdict": body.manualVerdict,
+            "note": body.manualNote or "", "executor": user.name,
+        }
+        store.put("testCases", case_id, case)
+        return ok({"mode": "manual", "lastRun": case["lastRun"], "case": case})
+
+    # API 测试用例：真实执行
+    report = run_api_case(case, schema_lookup=schema_lookup, force=body.force)
+    report["mode"] = "api"
+    case["lastRun"] = {
+        "at": now_label(), "mode": "api", "verdict": report.get("verdict", ""),
+        "detail": report.get("detail", ""),
+        "http": (report.get("actual") or {}).get("http"),
+    }
+    store.put("testCases", case_id, case)
+    report["lastRun"] = case["lastRun"]
+    return ok(report)
+
+
+@router.get("/testcases/engines")
+def available_engines(_: User = Depends(get_current_user)) -> dict[str, Any]:
+    """返回用例生成引擎及可用性，供前端决定默认引擎与提示。"""
+    key = settings.llm_api_key or ""
+    placeholder = (not key) or len(key) < 20 or "xxx" in key.lower() or key in {"sk-", "your-key", "test-key"}
+    return ok({
+        "engines": [
+            {
+                "value": "internal", "label": "系统内部逻辑",
+                "available": True,
+                "desc": "基于 PRD 业务规则、负面清单与追溯链本地生成，无需外部 API",
+            },
+            {
+                "value": "external", "label": "外部 AI API",
+                "available": not placeholder,
+                "desc": f"调用外部大模型（{settings.llm_model}）生成" if not placeholder
+                        else "未配置有效的 LLM_API_KEY，当前不可用",
+            },
+            {
+                "value": "agent", "label": "测试工程师 AGENT",
+                "available": True,
+                "desc": "资深测试工程师方法论驱动：等价类/边界值/状态迁移/并发幂等/安全/数据一致性七类设计，基于 PRD 与真实接口契约建模",
+            },
+        ],
+        "externalReady": not placeholder,
+        "model": settings.llm_model,
+    })
+
+
+@router.post("/testcases/agent/generate")
+def agent_generate_cases(
+    body: AgentCaseGenerateRequest,
+    pid: str = Depends(project_editor_scope),
+) -> dict[str, Any]:
+    """测试工程师 AGENT：按方法论生成详细专业用例。
+
+    requirementId 为空时对全部无用例的需求批量生成；dryRun 只预览不落库。
+    设计说明见 docs/traceability/测试工程师AGENT-设计说明.md。
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    backend_dir = Path(__file__).resolve().parents[2]
+    cmd = [sys.executable, "-m", "agents.case_agent"]
+    if body.requirementId:
+        cmd += ["--only", body.requirementId]
+    if body.dryRun:
+        cmd += ["--dry-run"]
+    if body.overwrite:
+        cmd += ["--overwrite"]
+    proc = subprocess.run(cmd, cwd=backend_dir, capture_output=True, text=True, timeout=300)
+    if proc.returncode != 0:
+        raise HTTPException(500, f"测试工程师 AGENT 运行失败：{proc.stderr[-500:]}")
+    generated = len(store.all("testCases", pid))
+    return ok({
+        "message": "测试工程师 AGENT 已完成用例生成（状态=待评审）" if not body.dryRun else "预览完成（未落库）",
+        "output": proc.stdout[-1500:],
+        "totalCases": generated,
+    })
+
+
 @router.post("/testcases/generate")
 def generate_cases(
     body: GenerateCasesRequest,
@@ -523,6 +642,7 @@ def generate_cases(
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     context = body.source
+    requirement = None
     if body.requirementId:
         requirement = db.scalar(select(Requirement).where(
             Requirement.id == body.requirementId, Requirement.project_id == pid
@@ -530,19 +650,75 @@ def generate_cases(
         if not requirement:
             raise HTTPException(404, "需求不存在")
         context = requirement_text(requirement, db)
-    try:
-        drafts = generate_testcases(body.source, context)
-    except LLMUnavailable as exc:
-        raise HTTPException(503, str(exc)) from exc
-    except LLMError as exc:
-        raise HTTPException(502, str(exc)) from exc
+
+    # 关联需求（含主需求）：既作为生成上下文，也写入用例的关联字段
+    related_ids = list(dict.fromkeys(
+        ([body.requirementId] if body.requirementId else []) + list(body.relatedRequirementIds)
+    ))
+    related_titles: dict[str, str] = {}
+    if related_ids:
+        rows = db.execute(
+            select(Requirement.id, Requirement.title).where(Requirement.id.in_(related_ids))
+        ).all()
+        related_titles = {r[0]: r[1] for r in rows}
+        if related_titles:
+            context += "\n\n关联需求：\n" + "\n".join(
+                f"- {rid}: {title}" for rid, title in related_titles.items())
+
+    # PRD：内部引擎的核心输入；外部引擎也可作为增强上下文
+    prd_doc = None
+    if body.requirementId:
+        row = db.execute(text(
+            "SELECT doc FROM requirement_prd WHERE requirement_id=:rid AND project_id=:pid"
+        ), {"rid": body.requirementId, "pid": pid}).fetchone()
+        if row:
+            prd_doc = row[0]
+
+    if body.engine == "internal":
+        drafts = local_generate(
+            title=requirement.title if requirement else body.source,
+            module_hint=related_titles.get(body.requirementId, ""),
+            strategies=body.strategies,
+            prd_doc=prd_doc,
+            context=context,
+        )
+        engine_label = "内部逻辑"
+    else:
+        # 外部 AI：把 PRD 的负面清单与业务规则作为增强上下文注入
+        if prd_doc and body.rag:
+            s = prd_doc.get("sections", {})
+            rules = "\n".join(f"- {r.get('text', '')}" for r in s.get("businessRules", []))
+            negs = "\n".join(f"- [{n.get('id')}] {n.get('scenario', '')}"
+                             for n in s.get("exceptions", []))
+            context += f"\n\n业务规则：\n{rules}\n\n已知负面场景：\n{negs}"
+        strategies_cn = "、".join(body.strategies)
+        try:
+            drafts = generate_testcases(
+                f"{body.source}（引擎=外部AI，模型={body.model or 'default'}，策略={strategies_cn}）",
+                context,
+            )
+        except LLMUnavailable as exc:
+            raise HTTPException(503, f"外部 AI 不可用：{exc}。可切换到「内部逻辑」引擎。") from exc
+        except LLMError as exc:
+            raise HTTPException(
+                502, f"外部 AI 调用失败（{exc}）。请在生成配置中切换到「系统内部逻辑」引擎。"
+            ) from exc
+        engine_label = f"外部AI·{body.model or '默认'}"
+
+    # 按策略过滤（外部模型可能不严格遵循，这里强制对齐勾选的策略）
+    wanted = {STRATEGY_CN.get(s, s) for s in body.strategies}
+    drafts = [d for d in drafts if not wanted or d.get("type") in wanted] or drafts
+
     start = next_numeric_id(store.all("testCases", pid), "id", "TC")
     return ok([
         {
             "id": f"TC-{start + index}",
             "projectId": pid,
             **draft,
-            "source": "AI",
+            "source": engine_label,
+            "requirementId": body.requirementId or "",
+            "relatedRequirementIds": related_ids,
+            "relatedRequirementTitles": [related_titles.get(r, r) for r in related_ids],
             "owner": user.name,
             "status": "草稿",
             "version": "v1",
@@ -760,13 +936,20 @@ def validate_target(url: str) -> None:
 def send_api_request(body: ApiSend, _: str = Depends(project_scope)) -> dict[str, Any]:
     validate_target(body.url)
     started = time.perf_counter()
+    headers = dict(body.headers)
+    if body.body:
+        headers.setdefault("Content-Type", "application/json")
+    if body.auth == "admin":
+        headers.setdefault("Authorization", f"Bearer {case_runner_tokens.admin()}")
+    elif body.auth == "customer":
+        headers.setdefault("Authorization", f"Bearer {case_runner_tokens.c()}")
     try:
         with httpx.Client(timeout=settings.api_test_timeout_seconds, follow_redirects=True) as client:
             response = client.request(
                 body.method.upper(),
                 body.url,
                 content=body.body.encode("utf-8") if body.body else None,
-                headers={"Content-Type": "application/json"} if body.body else None,
+                headers=headers,
             )
     except httpx.HTTPError as exc:
         raise HTTPException(502, f"请求失败：{exc}") from exc
@@ -790,6 +973,23 @@ def send_api_request(body: ApiSend, _: str = Depends(project_scope)) -> dict[str
         "assertionsPassed": passed,
         "assertionsTotal": total,
     })
+
+
+@router.post("/api-defs/sample")
+def sample_api_request(body: ApiSampleRequest, pid: str = Depends(project_scope), db: Session = Depends(get_db)) -> dict[str, Any]:
+    """为调试面板探测真实样本：替换路径占位、按契约构造请求体。"""
+    template = body.path
+    row = db.scalar(select(TraceApi).where(
+        TraceApi.project_id == pid, TraceApi.path == template, TraceApi.method == body.method.upper()))
+    schema = (row.request_schema or None) if row else None
+    sample = probe_sample(body.method.upper(), template, schema)
+    sample["known"] = row is not None
+    if row:
+        sample["summary"] = row.summary
+        sample["service"] = row.service
+        sample["requestSchema"] = row.request_schema or {}
+        sample["responseSchema"] = row.response_schema or {}
+    return ok(sample)
 
 
 @router.get("/api-suites")
@@ -895,6 +1095,103 @@ def run_ui_script(body: RunRequest, pid: str = Depends(project_editor_scope)) ->
 @router.get("/ui/recorder")
 def list_recorder_steps(pid: str = Depends(project_scope)) -> dict[str, Any]:
     return ok(store.all("recorderSteps", pid))
+
+
+# ---------------- UI 自动化：编译 → 复用脚本 → 共享浏览器池执行 ----------------
+def _all_functional_cases(pid: str) -> list[dict[str, Any]]:
+    return [
+        c for c in store.all("testCases", pid)
+        if (c.get("caseType") or ("api" if c.get("relatedApi") else "functional")) == "functional"
+    ]
+
+
+@router.post("/ui/compile")
+def compile_ui_cases(body: UiCompileRequest, pid: str = Depends(project_scope)) -> dict[str, Any]:
+    """把功能测试用例编译成关键字 IR 与可复用 Playwright 脚本，落库到 uiScripts。"""
+    from ..ui_step_compiler import compile_batch, to_playwright_script
+    cases = _all_functional_cases(pid)
+    if body.caseIds:
+        wanted = set(body.caseIds)
+        cases = [c for c in cases if c.get("id") in wanted]
+    if not cases:
+        raise HTTPException(404, "没有可编译的功能测试用例")
+
+    result = compile_batch(cases)
+    existing = {s.get("caseId") for s in store.all("uiScripts", pid) if s.get("caseId")}
+    created = 0
+    for ir_case in result["compiled"]:
+        if ir_case["caseId"] in existing and not body.overwrite:
+            continue
+        script = to_playwright_script(ir_case)
+        doc = {
+            "id": f"US-{ir_case['caseId']}", "projectId": pid,
+            "caseId": ir_case["caseId"], "caseTitle": ir_case["caseTitle"],
+            "name": ir_case["caseTitle"][:80], "framework": "Playwright · 关键字驱动",
+            "content": script, "ir": ir_case,
+            "status": "启用" if ir_case["summary"]["ready"]
+                      else ("部分可执行" if ir_case["summary"]["uiRunnable"] else "待补全"),
+            "updatedAt": now_label(),
+        }
+        store.put("uiScripts", doc["id"], doc)
+        created += 1
+    return ok({
+        "stats": result["stats"], "created": created,
+        "skipped": len(result["compiled"]) - created,
+        "details": [
+            {"caseId": c["caseId"], "title": c["caseTitle"], **c["summary"]}
+            for c in result["compiled"]
+        ],
+    })
+
+
+@router.get("/ui/compile/{case_id}")
+def get_compiled_case(case_id: str, pid: str = Depends(project_scope)) -> dict[str, Any]:
+    """查看单条用例的编译结果（IR + 可复用脚本）。"""
+    doc = store.get("uiScripts", f"US-{case_id}", pid)
+    if not doc:
+        raise HTTPException(404, "该用例尚未编译，请先执行编译")
+    return ok(doc)
+
+
+@router.post("/ui/run-cases")
+def run_ui_cases(body: UiRunRequest, pid: str = Depends(project_editor_scope)) -> dict[str, Any]:
+    """用共享浏览器池真实执行编译后的 UI 自动化用例（步骤间 300ms 节流）。"""
+    from ..ui_executor import run_compiled
+    scripts = [s for s in store.all("uiScripts", pid) if s.get("caseId") and s.get("ir")]
+    if body.caseIds:
+        wanted = set(body.caseIds)
+        scripts = [s for s in scripts if s.get("caseId") in wanted]
+    if not scripts:
+        raise HTTPException(404, "没有已编译的 UI 自动化脚本，请先编译")
+
+    results = []
+    for s in scripts:
+        report = run_compiled(s["ir"], delay_ms=body.delayMs or 300)
+        report["caseTitle"] = s.get("caseTitle", "")
+        results.append(report)
+        run = {
+            "id": uid("UR"), "projectId": pid, "script": s.get("name", ""),
+            "caseId": s.get("caseId", ""), "browser": "Chromium(shared-pool)",
+            "result": "成功" if report["verdict"] == "通过" else report["verdict"],
+            "verdict": report["verdict"], "steps": report["steps"],
+            "screenshot": report.get("screenshot", ""),
+            "duration": f"{report['durationMs']}ms", "time": now_label(),
+        }
+        store.put("uiRuns", run["id"], run)
+
+    return ok({
+        "total": len(results), "passed": sum(1 for r in results if r["verdict"] == "通过"),
+        "failed": sum(1 for r in results if r["verdict"] == "失败"),
+        "partial": sum(1 for r in results if r["verdict"] == "部分可执行"),
+        "results": results,
+    })
+
+
+@router.get("/ui/pool-status")
+def ui_pool_status(_: str = Depends(project_scope)) -> dict[str, Any]:
+    """查看共享浏览器池资源状态（架构可观测性）。"""
+    from ..ui_executor import POOL
+    return ok(POOL.status())
 
 
 @router.post("/ui/recorder")

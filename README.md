@@ -117,6 +117,46 @@ backend/.venv/bin/python scripts/import_property_project.py --source /Users/imac
 - 环境变量使用 `APP_SECRET` 派生的 Fernet 密钥加密存储。
 - 安全边界：这是执行本地命令的能力，只对管理员开放；生产环境应放入受限容器/沙箱，并限制可执行命令与网络。
 
+## LLM-wiki 学习中心
+
+- 入口：`项目空间 → 知识库 → 学习中心`，路由 `/project/:pid/knowledge/learning`。
+- 内容：尚品汇 LLM-wiki 的 13 节课 + 6 篇笔记，覆盖需求、页面、接口、调用链、数据规则、知识图谱、RAG 和实战复盘。
+- 能力：章节导航、全文搜索、课程/笔记筛选、完成标记（localStorage 按项目隔离）、上一课/下一课、配套资产跳转。
+- 数据：`src/content/llm-wiki-course.json`，由 Markdown 源文件生成，不在页面里硬编码正文。
+- 课件同时上传到知识库 `LLM-wiki 学习中心`，可在“召回测试”中检索。
+
+同步课件：
+
+```bash
+cd /Users/imac/Desktop/AI_Studio/方案交互页面设计
+backend/.venv/bin/python scripts/sync_llm_wiki_course.py \
+  --source /Users/imac/Desktop/电商自动化测试/shang-pivot-master/docs/llm-wiki/course
+```
+
+同步知识库（首次创建，后续增量跳过；加 `--replace` 覆盖同名文档）：
+
+```bash
+backend/.venv/bin/python scripts/upload_llm_wiki_course.py \
+  --source /Users/imac/Desktop/电商自动化测试/shang-pivot-master/docs/llm-wiki/course \
+  --email zhangwei@corp.com --password '***'
+```
+
+## 界面专业化改造
+
+2026-11 完成第一轮视觉改造，方向为 **Precision Workspace**：
+
+- 设计基础：品牌 Token、14px 正文、13px 表格、12px 标签、12px 卡片圆角
+- 全局骨架：56px 顶栏、232px 分组侧栏、26px 页面标题、页面说明
+- 基准页：工作台、需求列表、需求详情
+- 组件：Button / Input / Card / Tag / Table / Modal / Drawer / Empty / Skeleton / Icon
+
+相关文档：
+
+- 改造教程：`docs/系统优化教程.md`
+- 未完成清单：`docs/设计优化待办.md`
+- 设计规范：`docs/设计规范.md`
+- 设计基线包：`design/README.md`
+
 ## 配置
 
 | 变量 | 说明 |

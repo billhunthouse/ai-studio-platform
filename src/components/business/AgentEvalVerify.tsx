@@ -39,7 +39,7 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
       }
     >
       <div className="space-y-3">
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
+        <div className="rounded-md border border-line bg-ink-50 px-3 py-2.5 text-xs text-ink-600">
           从 AI_Studio 后端真实调用 Agent 服务，依次验证商品工具、知识库 RAG、订单鉴权边界，并检查每次运行的 LLM / 工具 / 检索 trace。
         </div>
 
@@ -50,16 +50,16 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
               ["知识库 RAG", "KnowledgeAgent · pgvector 检索"],
               ["订单鉴权", "OrderAgent · 未登录返回 need_auth"],
             ].map(([title, desc]) => (
-              <div key={title} className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs font-medium text-slate-800">{title}</div>
-                <div className="mt-1 text-[11px] text-slate-500 leading-5">{desc}</div>
+              <div key={title} className="rounded-md border border-line p-3">
+                <div className="text-xs font-medium text-ink-800">{title}</div>
+                <div className="mt-1 text-[11px] text-ink-500 leading-5">{desc}</div>
               </div>
             ))}
           </div>
         )}
 
         {running && (
-          <div className="rounded-md border border-blue-100 bg-blue-50 px-3 py-3 text-xs text-blue-700">
+          <div className="rounded-md border border-brand-100 bg-brand-50 px-3 py-3 text-xs text-brand-700">
             正在发起 3 条真实调用并拉取 trace，预计 10 秒左右…
           </div>
         )}
@@ -70,7 +70,7 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
               <span className="font-medium">{result.passed ? "3 条真实链路全部通过" : "存在失败项，请查看探针详情"}</span>
               <span>{result.probes.filter((item) => item.passed).length} / {result.probes.length} 通过</span>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-500">
               <Tag t={result.health.llm} c="blue" />
               <Tag t={`RAG ${result.health.rag}`} c={result.health.rag === "pgvector" ? "green" : "gray"} />
               <Tag t={`trace ${result.health.trace_store}`} c={result.health.trace_store === "postgres" ? "green" : "gray"} />
@@ -78,15 +78,15 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
             </div>
             <div className="space-y-2">
               {result.probes.map((probe) => (
-                <div key={probe.key} className="rounded-md border border-slate-200 p-3">
+                <div key={probe.key} className="rounded-md border border-line p-3">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Tag t={probe.passed ? "通过" : "失败"} c={probe.passed ? "green" : "red"} />
-                      <span className="text-xs font-medium text-slate-800">{probe.label}</span>
+                      <span className="text-xs font-medium text-ink-800">{probe.label}</span>
                       <StateTag value={probe.status} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500">{probe.latencyMs} ms</span>
+                      <span className="text-[11px] text-ink-500">{probe.latencyMs} ms</span>
                       <Btn v="ghost" onClick={() => setTraceProbe(probe)}>查看 Trace</Btn>
                     </div>
                   </div>
@@ -94,8 +94,8 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
                     {probe.checks.map((check) => (
                       <div key={check.label} className="flex items-center gap-1.5 text-[11px]">
                         <span className={check.passed ? "text-emerald-600" : "text-rose-600"}>{check.passed ? "通过" : "失败"}</span>
-                        <span className="text-slate-600">{check.label}</span>
-                        <span className="text-slate-500 truncate">{check.detail}</span>
+                        <span className="text-ink-600">{check.label}</span>
+                        <span className="text-ink-500 truncate">{check.detail}</span>
                       </div>
                     ))}
                   </div>
@@ -109,13 +109,13 @@ export function AgentEvalVerify({ onVerified }: { onVerified?: (result: AgentVer
       <Modal open={!!traceProbe} title={traceProbe ? `真实调用 Trace · ${traceProbe.label}` : ""} onClose={() => setTraceProbe(null)} width="max-w-3xl">
         {traceProbe && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs text-slate-600">
+            <div className="flex items-center gap-2 text-xs text-ink-600">
               <Tag t={traceProbe.passed ? "通过" : "失败"} c={traceProbe.passed ? "green" : "red"} />
               <span>{traceProbe.agent}</span>
               <span>·</span>
               <span>{traceProbe.traceSummary.llmCalls} 次 LLM / {traceProbe.traceSummary.toolCalls} 次工具 / {traceProbe.traceSummary.retrievals} 次检索</span>
             </div>
-            <div className="rounded-md bg-slate-900 px-3 py-2.5 text-xs leading-6 text-slate-100 whitespace-pre-wrap">{traceProbe.answer}</div>
+            <div className="rounded-md bg-slate-900 px-3 py-2.5 text-xs leading-6 text-ink-100 whitespace-pre-wrap">{traceProbe.answer}</div>
             <AgentTraceTimeline trace={traceProbe.trace} />
           </div>
         )}

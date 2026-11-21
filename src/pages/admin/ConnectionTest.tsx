@@ -34,9 +34,9 @@ export function ConnectionTest() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
-        <Card><div className="text-xs text-slate-500">供应商总数</div><div className="text-2xl font-semibold mt-1">{data.length}</div></Card>
-        <Card><div className="text-xs text-slate-500">连通正常</div><div className="text-2xl font-semibold mt-1 text-emerald-600">{normal}</div></Card>
-        <Card><div className="text-xs text-slate-500">平均延迟</div><div className="text-2xl font-semibold mt-1">{normal ? Math.round(data.filter((p) => p.latencyMs > 0).reduce((n, p) => n + p.latencyMs, 0) / normal) : 0}ms</div></Card>
+        <Card><div className="text-xs text-ink-500">供应商总数</div><div className="text-2xl font-semibold mt-1">{data.length}</div></Card>
+        <Card><div className="text-xs text-ink-500">连通正常</div><div className="text-2xl font-semibold mt-1 text-emerald-600">{normal}</div></Card>
+        <Card><div className="text-xs text-ink-500">平均延迟</div><div className="text-2xl font-semibold mt-1">{normal ? Math.round(data.filter((p) => p.latencyMs > 0).reduce((n, p) => n + p.latencyMs, 0) / normal) : 0}ms</div></Card>
       </div>
 
       <Card title="连接测试" extra={<Btn onClick={testAll} disabled={allBusy}>{allBusy ? "检测中…" : "全部检测"}</Btn>}>
@@ -46,7 +46,7 @@ export function ConnectionTest() {
             p.name,
             <code key="u" className="text-[11px]">{p.baseUrl}</code>,
             p.status,
-            p.latencyMs > 0 ? <div key="l" className="w-28"><Progress value={Math.min(100, p.latencyMs / 8)} /><span className="text-[10px] text-slate-500">{p.latencyMs}ms</span></div> : "-",
+            p.latencyMs > 0 ? <div key="l" className="w-28"><Progress value={Math.min(100, p.latencyMs / 8)} /><span className="text-[10px] text-ink-500">{p.latencyMs}ms</span></div> : "-",
             p.models,
           ])}
           actions={(i) => <Btn v="ghost" disabled={busy === data[i].id} onClick={() => testOne(data[i].id)}>{busy === data[i].id ? "检测中…" : "测试"}</Btn>}
@@ -54,13 +54,13 @@ export function ConnectionTest() {
       </Card>
 
       <Card title="检测日志">
-        <div className="space-y-1 text-[11px] font-mono text-slate-600">
+        <div className="space-y-1 text-[11px] font-mono text-ink-600">
           {data.map((p) => (
             <div key={p.id} className="flex gap-2">
-              <span className="text-slate-500">{new Date().toLocaleTimeString("zh-CN", { hour12: false })}</span>
+              <span className="text-ink-500">{new Date().toLocaleTimeString("zh-CN", { hour12: false })}</span>
               <Tag t={p.status} />
               <span>{p.name}</span>
-              <span className="text-slate-500">{p.status === "正常" ? `GET /v1/models → 200 (${p.latencyMs}ms)` : "GET /v1/models → 401 Unauthorized"}</span>
+              <span className="text-ink-500">{p.status === "正常" ? `GET /v1/models → 200 (${p.latencyMs}ms)` : "GET /v1/models → 401 Unauthorized"}</span>
             </div>
           ))}
         </div>

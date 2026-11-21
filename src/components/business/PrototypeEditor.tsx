@@ -44,8 +44,8 @@ export function PrototypeEditor({ prototype, onClose, onSave }: {
   return (
     <Modal open title="编辑原型结构" onClose={onClose} width="max-w-3xl" footer={<><Btn v="ghost" onClick={onClose}>取消</Btn><Btn onClick={apply}>保存</Btn></>}>
       <div className="flex gap-2 mb-3">
-        <button onClick={() => switchMode("form")} className={cx("px-3 h-7 rounded text-xs", mode === "form" ? "bg-blue-600 text-white" : "border border-slate-300")}>表单编辑</button>
-        <button onClick={() => switchMode("json")} className={cx("px-3 h-7 rounded text-xs", mode === "json" ? "bg-blue-600 text-white" : "border border-slate-300")}>JSON</button>
+        <button onClick={() => switchMode("form")} className={cx("px-3 h-7 rounded text-xs", mode === "form" ? "bg-brand-500 text-white" : "border border-ink-300")}>表单编辑</button>
+        <button onClick={() => switchMode("json")} className={cx("px-3 h-7 rounded text-xs", mode === "json" ? "bg-brand-500 text-white" : "border border-ink-300")}>JSON</button>
       </div>
       {error && <div className="text-xs text-rose-600 mb-2">{error}</div>}
       {mode === "json" ? (
@@ -54,7 +54,7 @@ export function PrototypeEditor({ prototype, onClose, onSave }: {
         <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
           <Field label="页面流程"><Input className="w-full" value={draft.flow} onChange={(e) => setDraft({ ...draft, flow: e.target.value })} /></Field>
           {draft.pages.map((page, pageIndex) => (
-            <div key={pageIndex} className="border border-slate-200 rounded-md p-3 space-y-2">
+            <div key={pageIndex} className="border border-line rounded-md p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Input value={page.name} onChange={(e) => {
                   const pages = [...draft.pages];
@@ -64,7 +64,7 @@ export function PrototypeEditor({ prototype, onClose, onSave }: {
                 <Btn v="danger" onClick={() => setDraft({ ...draft, pages: draft.pages.filter((_, i) => i !== pageIndex) })} disabled={draft.pages.length <= 1}>删除页面</Btn>
               </div>
               {page.sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="border-l-2 border-slate-200 pl-3 space-y-2">
+                <div key={sectionIndex} className="border-l-2 border-line pl-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Input value={section.name} onChange={(e) => {
                       const pages = [...draft.pages];

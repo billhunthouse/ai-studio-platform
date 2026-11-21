@@ -31,6 +31,12 @@ class TestCaseCreate(BaseModel):
     expected: str = ""
     source: str = "手工"
     owner: str = "张伟"
+    # 测试类型：api=API 测试用例（可自动运行）；functional=功能测试用例（人工执行）
+    caseType: Literal["api", "functional"] | None = None
+    designMethod: str | None = None
+    relatedApi: str | None = None
+    testData: str | None = None
+    dbCheck: str | None = None
 
 
 class TestCaseUpdate(BaseModel):
@@ -45,11 +51,38 @@ class TestCaseUpdate(BaseModel):
     expected: str | None = None
     source: str | None = None
     owner: str | None = None
+    caseType: Literal["api", "functional"] | None = None
+    designMethod: str | None = None
+    relatedApi: str | None = None
+    testData: str | None = None
+    dbCheck: str | None = None
+
+
+class CaseRunRequest(BaseModel):
+    """用例运行请求：force 用于放行删除类写操作。"""
+    force: bool = False
+    # 人工执行结果（功能测试用例）：verdict ∈ 通过/失败/阻塞
+    manualVerdict: Literal["通过", "失败", "阻塞"] | None = None
+    manualNote: str | None = None
 
 
 class GenerateCasesRequest(BaseModel):
     source: str = "需求文档"
     requirementId: str | None = None
+    # 双引擎：external=外部 AI API；internal=系统内部逻辑（基于 PRD+追溯链）
+    engine: Literal["external", "internal"] = "external"
+    strategies: list[str] = Field(default_factory=lambda: ["正向流程", "边界值", "异常场景"])
+    rag: bool = True
+    model: str | None = None
+    # 关联的其他需求 ID（生成用例时一并绑定，便于跨需求追溯）
+    relatedRequirementIds: list[str] = Field(default_factory=list)
+
+
+class AgentCaseGenerateRequest(BaseModel):
+    """测试工程师 AGENT 生成请求：requirementId 为空时为全量（补无用例的需求）。"""
+    requirementId: str | None = None
+    dryRun: bool = False
+    overwrite: bool = False
 
 
 class ReviewSubmit(BaseModel):
@@ -77,7 +110,15 @@ class ApiSend(BaseModel):
     method: str = "POST"
     url: str = ""
     body: str = ""
+    headers: dict[str, str] = Field(default_factory=dict)
+    # 鉴权注入：admin=管理端身份 / customer=C 端会员 / none=不注入（由 headers 自带）
+    auth: Literal["admin", "customer", "none"] = "none"
     assertions: list[dict[str, Any]] | int = 0
+
+
+class ApiSampleRequest(BaseModel):
+    method: str = "GET"
+    path: str = Field(min_length=1)
 
 
 class SuiteCreate(BaseModel):
@@ -121,6 +162,18 @@ class FlowSave(BaseModel):
 class AppRunRequest(BaseModel):
     flow: str
     device: str = "Pixel 7"
+
+
+class UiCompileRequest(BaseModel):
+    """批量编译功能测试用例为 UI 自动化脚本 IR。"""
+    caseIds: list[str] = Field(default_factory=list)  # 空=全部功能测试用例
+    overwrite: bool = False
+
+
+class UiRunRequest(BaseModel):
+    """执行已编译的 UI 自动化用例。"""
+    caseIds: list[str] = Field(default_factory=list)
+    delayMs: int | None = None  # 步骤间延时，默认 300ms
 
 
 class ToolRun(BaseModel):

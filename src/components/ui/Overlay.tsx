@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useRef, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
+import { Icon } from "./Icon";
 
 function Portal({ children }: { children: ReactNode }) {
   return createPortal(children, document.body);
@@ -51,6 +52,14 @@ function useDialog<T extends HTMLElement>(open: boolean, onClose: () => void) {
   return ref;
 }
 
+function CloseButton({ onClose }: { onClose: () => void }) {
+  return (
+    <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-ink-500 hover:bg-ink-100 hover:text-ink-800" aria-label="关闭">
+      <Icon name="close" size={16} />
+    </button>
+  );
+}
+
 /* ---------------- Modal ---------------- */
 export function Modal({ open, title, onClose, children, footer, width = "max-w-lg" }: {
   open: boolean;
@@ -64,14 +73,14 @@ export function Modal({ open, title, onClose, children, footer, width = "max-w-l
   if (!open) return null;
   return (
     <Portal>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6" onClick={onClose}>
-        <div ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={cx("w-full bg-white rounded-lg shadow-2xl border border-slate-200 outline-none", width)} onClick={(e) => e.stopPropagation()}>
-          <header className="flex items-center justify-between px-4 h-11 border-b border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-base leading-none" aria-label="关闭">×</button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/45 p-6 backdrop-blur-[2px]" onClick={onClose}>
+        <div ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={cx("w-full overflow-hidden rounded-xl border border-line bg-white shadow-modal outline-none", width)} onClick={(e) => e.stopPropagation()}>
+          <header className="flex h-14 items-center justify-between border-b border-ink-100 px-5">
+            <h3 className="text-[15px] font-semibold text-ink-900">{title}</h3>
+            <CloseButton onClose={onClose} />
           </header>
-          <div className="p-4 max-h-[70vh] overflow-y-auto">{children}</div>
-          {footer && <footer className="flex justify-end gap-2 px-4 py-3 border-t border-slate-100">{footer}</footer>}
+          <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
+          {footer && <footer className="flex justify-end gap-2 border-t border-ink-100 bg-ink-50/60 px-5 py-3">{footer}</footer>}
         </div>
       </div>
     </Portal>
@@ -91,14 +100,14 @@ export function Drawer({ open, title, onClose, children, footer, width = "w-[480
   if (!open) return null;
   return (
     <Portal>
-      <div className="fixed inset-0 z-50 bg-slate-900/40" onClick={onClose}>
-        <aside ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={cx("absolute right-0 top-0 h-full bg-white shadow-2xl border-l border-slate-200 flex flex-col outline-none", width)} onClick={(e) => e.stopPropagation()}>
-          <header className="flex items-center justify-between px-4 h-11 border-b border-slate-100 shrink-0">
-            <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-base leading-none" aria-label="关闭">×</button>
+      <div className="fixed inset-0 z-50 bg-ink-950/45 backdrop-blur-[2px]" onClick={onClose}>
+        <aside ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={cx("absolute right-0 top-0 flex h-full flex-col border-l border-line bg-white shadow-modal outline-none", width)} onClick={(e) => e.stopPropagation()}>
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-ink-100 px-5">
+            <h3 className="text-[15px] font-semibold text-ink-900">{title}</h3>
+            <CloseButton onClose={onClose} />
           </header>
-          <div className="p-4 overflow-y-auto flex-1">{children}</div>
-          {footer && <footer className="flex justify-end gap-2 px-4 py-3 border-t border-slate-100 shrink-0">{footer}</footer>}
+          <div className="flex-1 overflow-y-auto p-5">{children}</div>
+          {footer && <footer className="flex shrink-0 justify-end gap-2 border-t border-ink-100 bg-ink-50/60 px-5 py-3">{footer}</footer>}
         </aside>
       </div>
     </Portal>
@@ -109,9 +118,9 @@ export function Drawer({ open, title, onClose, children, footer, width = "w-[480
 export function ToastStack({ items }: { items: { id: number; message: string }[] }) {
   return (
     <Portal>
-      <div role="status" aria-live="polite" className="fixed left-5 bottom-5 z-[60] space-y-2 pointer-events-none">
+      <div role="status" aria-live="polite" className="pointer-events-none fixed bottom-5 left-5 z-[60] space-y-2">
         {items.map((t) => (
-          <div key={t.id} className="px-4 py-2.5 rounded-md bg-slate-900 text-white text-xs shadow-xl max-w-sm">{t.message}</div>
+          <div key={t.id} className="max-w-sm rounded-lg border border-white/10 bg-ink-950 px-4 py-3 text-xs text-white shadow-pop">{t.message}</div>
         ))}
       </div>
     </Portal>

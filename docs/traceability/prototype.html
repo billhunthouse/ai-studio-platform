@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TestForge Trace · 追溯平台页面原型</title>
+<style>
+  :root{
+    --brand-50:#eef3ff; --brand-100:#dbe6ff; --brand-500:#2d5bff; --brand-600:#1f46e0;
+    --ink-950:#0b1220; --ink-900:#0f172a; --ink-700:#334155; --ink-600:#475569;
+    --ink-500:#64748b; --ink-400:#94a3b8; --ink-200:#e2e8f0; --ink-100:#f1f5f9; --ink-50:#f8fafc;
+    --surface:#f5f7fb; --line:#e2e8f0; --ai:#0891b2; --ai-subtle:#ecfeff;
+    --ok:#059669; --ok-bg:#eaf7f1; --warn:#d97706; --warn-bg:#fdf5e4; --danger:#e11d48; --danger-bg:#fdeeee;
+    --font:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font);background:var(--surface);color:var(--ink-900);font-size:14px;-webkit-font-smoothing:antialiased;}
+  svg.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;}
+
+  /* layout */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:232px;background:var(--ink-950);color:#94a3b8;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;}
+  .main{margin-left:232px;flex:1;min-width:0;}
+  .brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .brand-mark{width:30px;height:30px;background:var(--brand-500);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}
+  .brand b{color:#fff;font-size:15px;}
+  .nav{padding:16px 12px;flex:1;}
+  .nav-lbl{font-size:11px;color:#64748b;letter-spacing:1.5px;padding:0 10px;margin:14px 0 6px;font-weight:600;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;color:#94a3b8;cursor:pointer;font-size:13px;margin-bottom:2px;text-decoration:none;}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#e2e8f0;}
+  .nav a.on{background:var(--brand-500);color:#fff;font-weight:600;}
+  .nav a .badge{margin-left:auto;background:var(--warn);color:#fff;font-size:10px;border-radius:9px;padding:1px 6px;font-weight:700;}
+  .side-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#64748b;}
+
+  .topbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 28px;position:sticky;top:0;z-index:10;}
+  .crumb{font-size:13px;color:var(--ink-500);}
+  .crumb b{color:var(--ink-900);}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+  .gsearch{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--ink-400);font-size:12px;width:260px;}
+  .gsearch input{border:none;background:none;outline:none;font-size:12px;width:100%;font-family:var(--font);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--ink-900);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  .content{padding:24px 28px;}
+  .page{display:none;}
+  .page.on{display:block;}
+  .phead{margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+  .ptitle{font-size:24px;font-weight:800;letter-spacing:-.4px;}
+  .pdesc{font-size:13px;color:var(--ink-500);margin-top:5px;}
+  .pact{display:flex;gap:8px;flex:0 0 auto;}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink-900);padding:8px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;}
+  .btn:hover{border-color:#cbd5e1;}
+  .btn-p{background:var(--brand-500);border-color:var(--brand-500);color:#fff;}
+  .btn-p:hover{background:var(--brand-600);}
+  .btn-warn{background:var(--warn-bg);border-color:#f5d99a;color:var(--warn);}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.03);margin-bottom:16px;}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--ink-100);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .ch h3{font-size:14px;font-weight:700;}
+  .ch .sub{font-size:11px;color:var(--ink-400);font-weight:400;margin-top:2px;}
+  .cb{padding:18px;}
+
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .metric .l{font-size:12px;color:var(--ink-500);}
+  .metric .v{font-size:28px;font-weight:800;letter-spacing:-1px;margin-top:6px;line-height:1;}
+  .metric .f{font-size:11px;color:var(--ink-400);margin-top:7px;}
+  .metric.hl .v{color:var(--brand-500);}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;color:var(--ink-500);font-weight:600;font-size:11.5px;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--ink-50);}
+  td{padding:11px 14px;border-bottom:1px solid var(--ink-100);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--brand-50);cursor:pointer;}
+  .mono{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11.5px;color:var(--ink-700);}
+  .link{color:var(--brand-500);font-weight:600;cursor:pointer;}
+  .link:hover{text-decoration:underline;}
+
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .t-ok{background:var(--ok-bg);color:var(--ok);}
+  .t-warn{background:var(--warn-bg);color:var(--warn);}
+  .t-dg{background:var(--danger-bg);color:var(--danger);}
+  .t-info{background:var(--brand-50);color:var(--brand-500);}
+  .t-ai{background:var(--ai-subtle);color:var(--ai);}
+  .t-gray{background:var(--ink-100);color:var(--ink-600);}
+
+  .toolbar{display:flex;gap:8px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--ink-100);flex-wrap:wrap;}
+  .toolbar input,.toolbar select{border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12px;font-family:var(--font);outline:none;}
+  .toolbar input:focus,.toolbar select:focus{border-color:var(--brand-500);}
+  .toolbar .sp{margin-left:auto;font-size:11px;color:var(--ink-400);}
+
+  .bar{height:6px;background:var(--ink-100);border-radius:3px;overflow:hidden;min-width:80px;}
+  .bar i{display:block;height:100%;background:var(--brand-500);border-radius:3px;}
+  .bar i.ok{background:var(--ok);}
+
+  /* detail layout */
+  .detail{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
+  .info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--ink-100);font-size:12.5px;gap:12px;}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .k{color:var(--ink-500);flex:0 0 auto;}
+  .info-row .v{text-align:right;font-weight:600;}
+
+  .flow{display:flex;flex-direction:column;gap:0;}
+  .flow-node{border:1px solid var(--line);border-radius:9px;padding:11px 14px;background:#fff;cursor:pointer;transition:.15s;position:relative;}
+  .flow-node:hover{border-color:var(--brand-500);box-shadow:0 0 0 2px var(--brand-50);}
+  .flow-node .kind{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .flow-node .name{font-size:13px;font-weight:700;margin-top:4px;}
+  .flow-node .meta{font-size:11px;color:var(--ink-400);margin-top:3px;}
+  .flow-conn{height:22px;border-left:2px solid var(--ink-200);margin-left:24px;position:relative;}
+  .flow-conn::after{content:"";position:absolute;bottom:-1px;left:-5px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--ink-300);}
+  .hop-label{display:inline-block;font-size:10px;font-weight:700;color:var(--brand-500);background:var(--brand-50);border-radius:4px;padding:1px 7px;margin-bottom:6px;}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .note{background:var(--brand-50);border-left:3px solid var(--brand-500);padding:11px 14px;border-radius:0 8px 8px 0;font-size:12px;color:var(--ink-700);line-height:1.7;}
+  .note.warn{background:var(--warn-bg);border-left-color:var(--warn);}
+  .note b{color:var(--brand-500);}
+
+  .matrix td{text-align:center;}
+  .matrix td:first-child,.matrix td:nth-child(2){text-align:left;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot.ok{background:var(--ok);} .dot.no{background:var(--ink-200);}
+
+  .hint{position:fixed;right:18px;bottom:18px;background:var(--ink-950);color:#fff;border-radius:10px;padding:12px 16px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:50;max-width:300px;line-height:1.6;}
+  .hint b{color:#93b4ff;}
+  @media(max-width:1100px){.metrics{grid-template-columns:repeat(2,1fr);}.detail{grid-template-columns:1fr;}.two{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-g" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-r" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></symbol>
+  <symbol id="i-a" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-t" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+  <symbol id="i-c" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-l" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
+  <symbol id="i-s" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+</svg>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">TF</div><b>TestForge Trace</b></div>
+    <nav class="nav">
+      <div class="nav-lbl">工作台</div>
+      <a data-p="overview" class="on"><svg class="ic"><use href="#i-g"/></svg>需求总览</a>
+      <a data-p="matrix"><svg class="ic"><use href="#i-l"/></svg>追踪矩阵</a>
+      <div class="nav-lbl">资产</div>
+      <a data-p="apis"><svg class="ic"><use href="#i-a"/></svg>接口列表</a>
+      <a data-p="schema"><svg class="ic"><use href="#i-t"/></svg>数据库 Schema</a>
+      <div class="nav-lbl">治理</div>
+      <a data-p="pending"><svg class="ic"><use href="#i-g"/></svg>待确认关联 <span class="badge" id="pendBadge">23</span></a>
+    </nav>
+    <div class="side-foot">v2.1 · 页面高保真原型<br>演示项目：尚品汇电商</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="crumb">项目空间 / <b id="crumb">需求总览</b></span>
+      <div class="top-right">
+        <div class="gsearch"><svg class="ic"><use href="#i-s"/></svg><input placeholder="粘贴 ID 跳转，如 api:GET:/api/products/{spuId}"></div>
+        <div class="avatar">TA</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- 需求总览 -->
+      <section class="page on" id="p-overview">
+        <div class="phead"><div><div class="ptitle">需求总览</div><div class="pdesc">需求资产与五层关联覆盖状态 · 项目：尚品汇电商</div></div>
+          <div class="pact"><button class="btn">导出</button><button class="btn btn-p">+ 新建需求</button></div></div>
+        <div class="metrics">
+          <div class="metric"><div class="l">需求总数</div><div class="v">64</div><div class="f">主需求 12 / 子需求 52</div></div>
+          <div class="metric hl"><div class="l">关联覆盖率</div><div class="v">87%</div><div class="f">五层关联完整的需求数占比</div></div>
+          <div class="metric"><div class="l">待确认关联</div><div class="v" style="color:var(--warn)">23</div><div class="f">其中 stale 4 条待复核</div></div>
+          <div class="metric"><div class="l">已发布版本</div><div class="v">v2.3.0</div><div class="f">最近发布 3 天前</div></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><h3>需求列表</h3><div class="sub">点击需求 ID 进入详情，查看完整五层关联</div></div></div>
+          <div class="toolbar"><input placeholder="搜索需求标题 / ID"><select><option>全部状态</option><option>已关联</option><option>已验证</option></select><select><option>全部优先级</option><option>P0</option><option>P1</option></select><span class="sp">共 64 条 · 默认 20 条/页</span></div>
+          <table><thead><tr><th>需求 ID</th><th>标题</th><th>优先级</th><th>状态</th><th>发布版本</th><th>关联覆盖</th><th>负责人</th></tr></thead><tbody>
+            <tr onclick="go('detail')"><td class="link mono">EXT-REVIEW-REPLY-001</td><td>商家回复商品评价</td><td><span class="tag t-dg">P0</span></td><td><span class="tag t-ok">已关联</span></td><td class="mono">v2.3.0</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i class="ok" style="width:100%"></i></div><span>100%</span></div></td><td>张伟</td></tr>
+            <tr onclick="go('detail')"><td class="link mono">V2-FR-015</td><td>发表商品评价</td><td><span class="tag t-warn">P1</span></td><td><span class="tag t-ok">已验证</span></td><td class="mono">v2.1.0</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i class="ok" style="width:100%"></i></div><span>100%</span></div></td><td>李娜</td></tr>
+            <tr onclick="go('detail')"><td class="link mono">REQ-ORDER-023</td><td>优惠券叠加与金额计算</td><td><span class="tag t-dg">P0</span></td><td><span class="tag t-ok">已关联</span></td><td class="mono">v2.3.0</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:80%"></i></div><span>80%</span></div></td><td>王强</td></tr>
+            <tr><td class="link mono">REQ-ORDER-024</td><td>订单退款与原路返回</td><td><span class="tag t-warn">P1</span></td><td><span class="tag t-warn">部分关联</span></td><td class="mono">v2.4.0</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:40%"></i></div><span>40%</span></div></td><td>王强</td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <!-- 需求详情 -->
+      <section class="page" id="p-detail">
+        <div class="phead"><div><div class="ptitle">EXT-REVIEW-REPLY-001</div><div class="pdesc">商家回复商品评价 · P0 · 计划 v2.3.0 / 实际上线 v2.3.0</div></div>
+          <div class="pact"><button class="btn">查看影响分析</button><button class="btn btn-p">生成测试用例</button></div></div>
+        <div class="detail">
+          <div>
+            <div class="card"><div class="ch"><h3>需求信息</h3></div><div class="cb">
+              <div class="info-row"><span class="k">需求 ID</span><span class="v mono">EXT-REVIEW-REPLY-001</span></div>
+              <div class="info-row"><span class="k">标题</span><span class="v">商家回复商品评价</span></div>
+              <div class="info-row"><span class="k">优先级</span><span class="v"><span class="tag t-dg">P0</span></span></div>
+              <div class="info-row"><span class="k">状态</span><span class="v"><span class="tag t-ok">已关联</span></span></div>
+              <div class="info-row"><span class="k">计划 / 实际上线</span><span class="v mono">v2.3.0 / v2.3.0</span></div>
+              <div class="info-row"><span class="k">负责人</span><span class="v">张伟</span></div>
+              <div class="info-row"><span class="k">来源</span><span class="v">PRD 扩展需求</span></div>
+            </div></div>
+            <div class="card"><div class="ch"><h3>关联统计</h3></div><div class="cb">
+              <div class="info-row"><span class="k">页面</span><span class="v">2</span></div>
+              <div class="info-row"><span class="k">接口</span><span class="v">3</span></div>
+              <div class="info-row"><span class="k">代码制品</span><span class="v">3</span></div>
+              <div class="info-row"><span class="k">数据表</span><span class="v">1</span></div>
+              <div class="info-row"><span class="k">覆盖率</span><span class="v" style="color:var(--ok)">100%</span></div>
+            </div></div>
+          </div>
+          <div>
+            <div class="card"><div class="ch"><div><h3>五层关联链路</h3><div class="sub">点击任意节点跳转对应实体详情 · 关系双向可查</div></div><span class="tag t-ok">完整链路</span></div>
+              <div class="cb"><div class="flow">
+                <span class="hop-label">HOP 0 · 需求</span>
+                <div class="flow-node" style="border-left:3px solid var(--brand-500)"><div class="kind" style="color:var(--brand-500)">REQUIREMENT</div><div class="name">商家回复商品评价</div><div class="meta mono">EXT-REVIEW-REPLY-001 · SPLITS_INTO</div></div>
+                <div class="flow-conn"></div>
+                <span class="hop-label">HOP 1 · 页面（2）</span>
+                <div class="flow-node" onclick="go('apis')"><div class="kind" style="color:var(--ai)">PAGE · 产品功能页面</div><div class="name">评价管理页 <span class="tag t-ai">TRIGGERS</span></div><div class="meta mono">page:shang:review-admin-01 · 来源 PRD 3.2</div></div>
+                <div style="height:6px"></div>
+                <div class="flow-node" onclick="go('apis')"><div class="kind" style="color:var(--ai)">PAGE · 产品功能页面</div><div class="name">商品详情页评价区 <span class="tag t-ai">TRIGGERS</span></div><div class="meta mono">page:shang:product-detail-01 · 来源 PRD 3.3</div></div>
+                <div class="flow-conn"></div>
+                <span class="hop-label">HOP 2 · 接口（3）</span>
+                <div class="flow-node" onclick="go('api-detail')"><div class="kind" style="color:var(--brand-500)">API · EXPOSED_BY</div><div class="name">PUT /admin/reviews/{id}/reply <span class="tag t-info">新增</span></div><div class="meta mono">admin-service · 鉴权：role:merchant</div></div>
+                <div style="height:6px"></div>
+                <div class="flow-node" onclick="go('api-detail')"><div class="kind" style="color:var(--brand-500)">API · READS_WRITES</div><div class="name">GET /admin/reviews <span class="tag t-warn">修改</span></div><div class="meta mono">admin-service · 返回 merchantReply/repliedAt</div></div>
+                <div class="flow-conn"></div>
+                <span class="hop-label">HOP 3 · 数据表（1）</span>
+                <div class="flow-node" onclick="go('table-detail')"><div class="kind" style="color:var(--ok)">TABLE · 被读写</div><div class="name">review 评价表 <span class="tag t-warn">修改</span></div><div class="meta mono">table:mall:public:review · 新增 merchant_reply, replied_at</div></div>
+              </div></div>
+            </div>
+            <div class="card"><div class="ch"><h3>影响范围分析</h3><div class="sub">一跳到三跳 · 基于 confirmed 关联计算</div></div><div class="cb">
+              <div class="note"><b>结论</b>　该需求影响 2 个功能页面、3 个接口、3 个代码制品、1 张表。建议回归 8 条现有用例，其中 <b>TC-ORDER-0092/0093</b> 为优惠券叠加相关，需重点验证。</div>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="tag t-info">影响页面 2</span><span class="tag t-info">影响接口 3</span><span class="tag t-info">影响代码 3</span><span class="tag t-info">影响表 1</span><span class="tag t-ok">无跨库依赖</span></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 接口列表 -->
+      <section class="page" id="p-apis">
+        <div class="phead"><div><div class="ptitle">接口列表</div><div class="pdesc">所有已登记接口 · 支持按服务/鉴权/来源筛选，点击 ID 进详情</div></div>
+          <div class="pact"><button class="btn">导入 OpenAPI</button><button class="btn btn-p">+ 新建接口</button></div></div>
+        <div class="card"><div class="toolbar"><input placeholder="搜索路径 / 摘要"><select><option>全部服务</option><option>admin-service</option><option>product-service</option></select><select><option>全部来源</option><option>SPEC</option><option>CODE_SCAN</option><option>HUMAN</option></select><span class="sp">共 128 条</span></div>
+          <table><thead><tr><th>接口 ID</th><th>方法/路径</th><th>所属服务</th><th>鉴权</th><th>上游需求</th><th>调用页面</th><th>读写表</th><th>来源</th><th>状态</th></tr></thead><tbody>
+            <tr onclick="go('api-detail')"><td class="link mono">api:PUT:/admin/reviews/{id}/reply</td><td><span class="tag t-warn">PUT</span> /admin/reviews/{id}/reply</td><td>admin-service</td><td>role:merchant</td><td>1</td><td>1</td><td>1</td><td><span class="tag t-ok">CODE_SCAN</span></td><td><span class="tag t-ok">active</span></td></tr>
+            <tr onclick="go('api-detail')"><td class="link mono">api:GET:/api/products/{spuId}</td><td><span class="tag t-info">GET</span> /api/products/{spuId}</td><td>product-service</td><td>public</td><td>3</td><td>2</td><td>4</td><td><span class="tag t-ok">SPEC</span></td><td><span class="tag t-ok">active</span></td></tr>
+            <tr><td class="link mono">api:POST:/api/v1/order/submit</td><td><span class="tag t-warn">POST</span> /api/v1/order/submit</td><td>order-service</td><td>login</td><td>5</td><td>3</td><td>6</td><td><span class="tag t-ok">SPEC</span></td><td><span class="tag t-ok">active</span></td></tr>
+            <tr><td class="link mono">api:GET:/admin/reviews</td><td><span class="tag t-info">GET</span> /admin/reviews</td><td>admin-service</td><td>role:merchant</td><td>2</td><td>1</td><td>1</td><td><span class="tag t-warn">DOC_PARSE</span></td><td><span class="tag t-ok">active</span></td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <!-- 接口详情 -->
+      <section class="page" id="p-api-detail">
+        <div class="phead"><div><div class="ptitle mono" style="font-size:20px">api:PUT:/admin/reviews/{id}/reply</div><div class="pdesc">商家回复评价接口 · admin-service · 来源 CODE_SCAN</div></div>
+          <div class="pact"><button class="btn">查看契约</button><button class="btn btn-p">查看实现代码</button></div></div>
+        <div class="two">
+          <div class="card"><div class="ch"><h3>接口契约</h3></div><div class="cb">
+            <div class="info-row"><span class="k">方法</span><span class="v"><span class="tag t-warn">PUT</span></span></div>
+            <div class="info-row"><span class="k">路径</span><span class="v mono">/admin/reviews/{id}/reply</span></div>
+            <div class="info-row"><span class="k">鉴权要求</span><span class="v">role:merchant</span></div>
+            <div class="info-row"><span class="k">请求 Schema</span><span class="v mono">{"reply": string(1-500)}</span></div>
+            <div class="info-row"><span class="k">响应 Schema</span><span class="v mono">{code, message}</span></div>
+            <div class="info-row"><span class="k">内部调用</span><span class="v" style="font-weight:400;font-size:12px">ReviewAdminService.reply → 校验 → 写库</span></div>
+          </div></div>
+          <div class="card"><div class="ch"><h3>实现代码（接口级）</h3></div><div class="cb">
+            <div class="info-row"><span class="k">代码制品 ID</span><span class="v mono" style="font-size:11px">code:shang:admin:review-reply</span></div>
+            <div class="info-row"><span class="k">仓库 / 服务</span><span class="v">shang-admin / admin-service</span></div>
+            <div class="info-row"><span class="k">入口</span><span class="v mono">AdminOpsController.reply()</span></div>
+            <div class="info-row"><span class="k">最近扫描 commit</span><span class="v mono">a3f9c21</span></div>
+          </div></div>
+        </div>
+        <div class="card"><div class="ch"><h3>双向关联</h3><div class="sub">上游：谁触发我 · 下游：我指向谁</div></div><div class="cb two">
+          <div><div style="font-size:11px;font-weight:700;color:var(--ink-500);margin-bottom:8px">← 上游（反向查询）</div>
+            <div class="flow-node" onclick="go('detail')"><div class="kind" style="color:var(--ai)">PAGE · TRIGGERS</div><div class="name">评价管理页</div><div class="meta mono">page:shang:review-admin-01</div></div>
+            <div style="height:6px"></div>
+            <div class="flow-node" onclick="go('detail')"><div class="kind" style="color:var(--brand-500)">REQUIREMENT · SPLITS_INTO</div><div class="name">商家回复商品评价</div><div class="meta mono">EXT-REVIEW-REPLY-001</div></div>
+          </div>
+          <div><div style="font-size:11px;font-weight:700;color:var(--ink-500);margin-bottom:8px">下游（正向查询）→</div>
+            <div class="flow-node" onclick="go('table-detail')"><div class="kind" style="color:var(--ok)">TABLE · READS_WRITES</div><div class="name">review 评价表</div><div class="meta mono">table:mall:public:review</div></div>
+          </div>
+        </div></div>
+      </section>
+
+      <!-- 数据库页 -->
+      <section class="page" id="p-schema">
+        <div class="phead"><div><div class="ptitle">数据库 Schema</div><div class="pdesc">多服务多库 · 按数据库实例与服务分组，点击表名进详情</div></div>
+          <div class="pact"><button class="btn">导入 DDL</button></div></div>
+        <div class="metrics">
+          <div class="metric"><div class="l">数据库实例</div><div class="v">4</div><div class="f">mall_db / order_db / user_db / product_db</div></div>
+          <div class="metric"><div class="l">数据表</div><div class="v">86</div><div class="f">覆盖 5 个微服务</div></div>
+          <div class="metric"><div class="l">被追溯表</div><div class="v">54</div><div class="f">有 confirmed 代码关联</div></div>
+          <div class="metric"><div class="l">跨库关联</div><div class="v" style="color:var(--warn)">3</div><div class="f">需关注分布式事务</div></div>
+        </div>
+        <div class="card"><div class="toolbar"><input placeholder="搜索表名 / 字段"><select><option>全部数据库</option><option>mall_db</option><option>order_db</option></select><select><option>全部服务</option></select><span class="sp">共 86 张表</span></div>
+          <table><thead><tr><th>表 ID</th><th>数据库</th><th>服务</th><th>字段数</th><th>主键</th><th>被读写</th><th>上游需求</th><th>状态</th></tr></thead><tbody>
+            <tr onclick="go('table-detail')"><td class="link mono">table:mall:public:review</td><td>mall_db</td><td>product-service</td><td>9</td><td class="mono">id</td><td>3</td><td>2</td><td><span class="tag t-ok">active</span></td></tr>
+            <tr><td class="link mono">table:order:public:orders</td><td>order_db</td><td>order-service</td><td>14</td><td class="mono">id</td><td>8</td><td>5</td><td><span class="tag t-ok">active</span></td></tr>
+            <tr><td class="link mono">table:mall:public:cart</td><td>mall_db</td><td>product-service</td><td>6</td><td class="mono">id</td><td>4</td><td>3</td><td><span class="tag t-ok">active</span></td></tr>
+            <tr><td class="link mono">table:user:public:users</td><td>user_db</td><td>user-service</td><td>11</td><td class="mono">id</td><td>12</td><td>8</td><td><span class="tag t-ok">active</span></td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <!-- 表详情 -->
+      <section class="page" id="p-table-detail">
+        <div class="phead"><div><div class="ptitle mono" style="font-size:20px">table:mall:public:review</div><div class="pdesc">评价表 · mall_db / product-service · 来源 DDL 扫描</div></div>
+          <div class="pact"><button class="btn">查看 DDL</button></div></div>
+        <div class="two">
+          <div class="card"><div class="ch"><h3>字段（9）</h3></div><div class="cb" style="padding:0 18px 12px">
+            <table><thead><tr><th>字段</th><th>类型</th><th>可空</th><th>说明</th></tr></thead><tbody>
+              <tr><td class="mono">id</td><td class="mono">bigint</td><td>否</td><td>主键</td></tr>
+              <tr><td class="mono">spu_id</td><td class="mono">bigint</td><td>否</td><td>商品 ID</td></tr>
+              <tr><td class="mono">content</td><td class="mono">varchar(500)</td><td>否</td><td>评价内容</td></tr>
+              <tr><td class="mono">star</td><td class="mono">tinyint</td><td>否</td><td>星级</td></tr>
+              <tr style="background:var(--brand-50)"><td class="mono link">merchant_reply</td><td class="mono">varchar(500)</td><td>是</td><td>商家回复 <span class="tag t-info">新增</span></td></tr>
+              <tr style="background:var(--brand-50)"><td class="mono link">replied_at</td><td class="mono">datetime</td><td>是</td><td>回复时间 <span class="tag t-info">新增</span></td></tr>
+            </tbody></table>
+          </div></div>
+          <div>
+            <div class="card"><div class="ch"><h3>被哪些代码读写</h3></div><div class="cb">
+              <div class="flow-node" onclick="go('api-detail')"><div class="kind" style="color:var(--brand-500)">CODE · READS_WRITES</div><div class="name">ReviewAdminService.reply()</div><div class="meta mono">code:shang:admin:review-reply · 写入</div></div>
+              <div style="height:6px"></div>
+              <div class="flow-node"><div class="kind" style="color:var(--brand-500)">CODE · READS_WRITES</div><div class="name">ReviewService.getPreview()</div><div class="meta mono">code:shang:product:review-preview · 读取</div></div>
+            </div></div>
+            <div class="card"><div class="ch"><h3>反向追溯：上游需求</h3></div><div class="cb">
+              <div class="flow-node" onclick="go('detail')"><div class="kind" style="color:var(--brand-500)">REQUIREMENT</div><div class="name">商家回复商品评价</div><div class="meta mono">EXT-REVIEW-REPLY-001 · 3 hops</div></div>
+              <div style="height:6px"></div>
+              <div class="flow-node" onclick="go('detail')"><div class="kind" style="color:var(--brand-500)">REQUIREMENT</div><div class="name">发表商品评价</div><div class="meta mono">V2-FR-015 · 2 hops</div></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 待确认关联 -->
+      <section class="page" id="p-pending">
+        <div class="phead"><div><div class="ptitle">待确认关联</div><div class="pdesc">扫描发现的候选关联 · 按置信度排序 · 批量确认或驳回</div></div>
+          <div class="pact"><button class="btn btn-warn" onclick="toast('已批量驳回选中项')">批量驳回</button><button class="btn btn-p" onclick="toast('已确认 2 条关联')">批量确认</button></div></div>
+        <div class="metrics">
+          <div class="metric"><div class="l">proposed 待确认</div><div class="v" style="color:var(--warn)">19</div><div class="f">来自扫描与文档解析</div></div>
+          <div class="metric"><div class="l">stale 待复核</div><div class="v" style="color:var(--danger)">4</div><div class="f">扫描依据已消失，优先处理</div></div>
+          <div class="metric"><div class="l">本周已确认</div><div class="v">32</div><div class="f">确认率 78%</div></div>
+          <div class="metric"><div class="l">AI 推断</div><div class="v" style="color:var(--ink-400)">关闭</div><div class="f">低置信来源默认不启用</div></div>
+        </div>
+        <div class="card"><div class="ch"><div><h3>候选关联列表</h3><div class="sub">勾选后批量操作；点击行查看依据</div></div></div>
+          <table><thead><tr><th style="width:36px"></th><th>关系</th><th>源 → 目标</th><th>来源</th><th>置信度</th><th>状态</th><th>首次发现</th><th>操作</th></tr></thead><tbody>
+            <tr><td><input type="checkbox"></td><td><span class="tag t-info">SPLITS_INTO</span></td><td class="mono" style="font-size:11px">V2-FR-025 → page:shang:review-admin-01</td><td><span class="tag t-warn">DOC_PARSE</span></td><td>72%</td><td><span class="tag t-warn">proposed</span></td><td>2 天前</td><td><span class="link" onclick="toast('已确认')">确认</span> · <span class="link" onclick="toast('已驳回')">驳回</span></td></tr>
+            <tr><td><input type="checkbox"></td><td><span class="tag t-info">TRIGGERS</span></td><td class="mono" style="font-size:11px">page:shang:product-detail-01 → api:GET:/api/products/{spuId}</td><td><span class="tag t-ai">CODE_SCAN</span></td><td>95%</td><td><span class="tag t-warn">proposed</span></td><td>1 天前</td><td><span class="link" onclick="toast('已确认')">确认</span> · <span class="link">驳回</span></td></tr>
+            <tr style="background:var(--danger-bg)"><td><input type="checkbox"></td><td><span class="tag t-info">READS_WRITES</span></td><td class="mono" style="font-size:11px">code:shang:order:submit → table:order:public:orders</td><td><span class="tag t-dg">stale</span></td><td>—</td><td><span class="tag t-dg">stale</span></td><td>5 天前</td><td><span class="link" onclick="toast('已复核并恢复')">复核</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="note warn"><b>为什么要人工确认</b>　扫描与文档解析可能出错。只有 HUMAN / SPEC / CODE_SCAN 高置信来源可直接 confirmed；AI 推断默认关闭，开启后也必须人工确认才进正式图谱。</div>
+      </section>
+
+      <!-- 追踪矩阵 -->
+      <section class="page" id="p-matrix">
+        <div class="phead"><div><div class="ptitle">追踪矩阵</div><div class="pdesc">行=需求，列=五层关联数 · 覆盖缺口一目了然 · 发布版本 v2.3.0</div></div>
+          <div class="pact"><button class="btn">切换版本</button><button class="btn btn-p">导出 Excel</button></div></div>
+        <div class="card"><div class="ch"><div><h3>需求 × 关联覆盖</h3><div class="sub">绿点=已关联，灰点=缺失；点击需求行进详情</div></div><span class="tag t-ok">平均覆盖 87%</span></div>
+          <table class="matrix"><thead><tr><th>需求</th><th>标题</th><th>页面</th><th>接口</th><th>代码</th><th>表</th><th>覆盖率</th><th>缺口</th></tr></thead><tbody>
+            <tr onclick="go('detail')"><td class="mono link">EXT-REVIEW-REPLY-001</td><td>商家回复商品评价</td><td><span class="dot ok"></span> 2</td><td><span class="dot ok"></span> 3</td><td><span class="dot ok"></span> 3</td><td><span class="dot ok"></span> 1</td><td><b style="color:var(--ok)">100%</b></td><td><span class="tag t-ok">无</span></td></tr>
+            <tr onclick="go('detail')"><td class="mono link">REQ-ORDER-023</td><td>优惠券叠加与金额计算</td><td><span class="dot ok"></span> 2</td><td><span class="dot ok"></span> 2</td><td><span class="dot ok"></span> 2</td><td><span class="dot no"></span> 0</td><td><b style="color:var(--warn)">80%</b></td><td><span class="tag t-warn">缺表关联</span></td></tr>
+            <tr><td class="mono link">REQ-ORDER-024</td><td>订单退款与原路返回</td><td><span class="dot ok"></span> 1</td><td><span class="dot no"></span> 0</td><td><span class="dot no"></span> 0</td><td><span class="dot ok"></span> 1</td><td><b style="color:var(--danger)">40%</b></td><td><span class="tag t-dg">缺接口/代码</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="note"><b>版本回溯</b>　切换发布版本可查看当时 confirmed 关联的冻结快照；对比 v2.2→v2.3 可看新增/删除/废弃的关联。</div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="hint" id="hint"><b>原型说明</b><br>点击左侧菜单切换 8 个页面；点击需求/接口/表等节点可跳转详情。数据为尚品汇真实场景示意。</div>
+
+<script>
+  const names={overview:'需求总览',detail:'需求详情 · EXT-REVIEW-REPLY-001',apis:'接口列表',
+    'api-detail':'接口详情',schema:'数据库 Schema','table-detail':'表详情',pending:'待确认关联',matrix:'追踪矩阵'};
+  function go(p){
+    document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
+    document.getElementById('p-'+p).classList.add('on');
+    document.getElementById('crumb').textContent=names[p]||p;
+    let activePage = p==='detail'?'overview':p==='api-detail'?'apis':p==='table-detail'?'schema':p;
+    document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===activePage));
+  }
+  document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>go(a.dataset.p));
+  function toast(m){
+    const h=document.getElementById('hint');h.innerHTML='<b>操作反馈</b><br>'+m;
+    setTimeout(()=>h.innerHTML='<b>原型说明</b><br>点击左侧菜单切换 8 个页面；点击需求/接口/表等节点可跳转详情。',2200);
+  }
+</script>
+</body>
+</html>

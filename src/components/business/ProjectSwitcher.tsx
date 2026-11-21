@@ -75,24 +75,25 @@ export function ProjectSwitcher() {
 
   return (
     <>
-      <label className="flex items-center gap-2 text-xs">
-        项目
+      <label className="flex items-center gap-2 text-[11px] text-ink-400">
+        <span className="hidden xl:inline">项目</span>
         <select
           value={projectId}
+          aria-label="切换项目"
           onChange={(e) => {
             const next = e.target.value;
             if (!projects.some((p) => p.id === next)) return;
             setProjectId(next);
             if (layerOf(location.pathname) === "project") navigate(`/project/${next}/overview`);
           }}
-          className="bg-slate-800 border border-slate-700 rounded h-7 px-2 text-slate-100 max-w-40"
+          className="h-8 max-w-44 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[12px] text-white outline-none transition-colors hover:border-white/20 focus:border-brand-400 focus:ring-4 focus:ring-brand-500/20"
         >
-          {projects.length === 0 && <option value="">暂无项目</option>}
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {projects.length === 0 && <option value="" className="bg-ink-900">暂无项目</option>}
+          {projects.map((p) => <option key={p.id} value={p.id} className="bg-ink-900 text-white">{p.name}</option>)}
         </select>
       </label>
-      {canEdit && current && <button onClick={openEdit} className="text-xs text-slate-300 hover:text-white">编辑</button>}
-      {isAdmin && <button onClick={() => { setForm({ name: "", description: "" }); setCreateOpen(true); }} className="text-xs text-slate-300 hover:text-white">+ 新建</button>}
+      {canEdit && current && <button onClick={openEdit} className="text-[11px] text-ink-300 transition-colors hover:text-white">编辑</button>}
+      {isAdmin && <button onClick={() => { setForm({ name: "", description: "" }); setCreateOpen(true); }} className="text-[11px] text-ink-300 transition-colors hover:text-white">+ 新建</button>}
 
       <Modal open={open} title="编辑项目" onClose={() => setOpen(false)} footer={<><Btn v="ghost" onClick={() => setOpen(false)}>取消</Btn><Btn onClick={save} disabled={busy}>保存</Btn></>}>
         <div className="space-y-3">
