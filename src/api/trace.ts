@@ -116,7 +116,7 @@ export interface TraceDetail {
     tables?: TraceLink[];
     // table
     columns?: TableColumn[];
-    indexes?: Array<{ name: string; columns: string[]; unique?: boolean }>;
+    indexes?: Array<{ name: string; columns?: string[] | string; unique?: boolean; definition?: string }>;
     primaryKey?: string | null;
     writers?: TraceLink[];
     requirements?: TraceLink[];

@@ -1,0 +1,1495 @@
+{
+  "generatedAt": "2026-11-21 16:27:03",
+  "target": "http://127.0.0.1:5174 (尚品汇 C 端真实前端)",
+  "compiled": {
+    "total": 363,
+    "ready": 289,
+    "partial": 74,
+    "blocked": 0
+  },
+  "executed": 12,
+  "passed": 12,
+  "failed": 0,
+  "partial": 0,
+  "skipped": [],
+  "passRate": 100.0,
+  "totalSeconds": 92.7,
+  "writeExecuted": 2,
+  "byPageObject": {
+    "加入购物车流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "售后申请流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "商品搜索流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "商品详情流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "地址管理流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "完整下单流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "收银台支付闭环": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "登录流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "订单列表流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "订单详情流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "购物车流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    },
+    "首页浏览流程": {
+      "total": 1,
+      "passed": 0,
+      "failed": 0,
+      "partial": 0,
+      "通过": 1
+    }
+  },
+  "failures": [],
+  "results": [
+    {
+      "caseId": "TC-1556",
+      "caseTitle": "验收点1：同一 SKU 重复加购只产生一条条目并累计数量",
+      "module": "购物车与个人中心",
+      "pageObject": "加入购物车流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 723
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 348
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 322
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 342
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1504
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 305
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 8,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 341
+        },
+        {
+          "index": 9,
+          "raw": "等待详情页渲染",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 803
+        },
+        {
+          "index": 10,
+          "raw": "打开规格选择抽屉",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 350
+        },
+        {
+          "index": 11,
+          "raw": "等待抽屉动画",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 705
+        },
+        {
+          "index": 12,
+          "raw": "选择容量规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 326
+        },
+        {
+          "index": 13,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 14,
+          "raw": "选择颜色规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 335
+        },
+        {
+          "index": 15,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 406
+        },
+        {
+          "index": 16,
+          "raw": "抽屉内点击加入购物车",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 324
+        },
+        {
+          "index": 17,
+          "raw": "等待加购结果",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1605
+        },
+        {
+          "index": 18,
+          "raw": "断言未被规格校验拦截",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 310
+        },
+        {
+          "index": 19,
+          "raw": "断言页头购物车角标存在",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 9967,
+      "seconds": 10.6
+    },
+    {
+      "caseId": "TC-1027",
+      "caseTitle": "同意/拒绝-主流程成功",
+      "module": "售后",
+      "pageObject": "售后申请流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 739
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 330
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 315
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 338
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1503
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 306
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 8,
+          "raw": "进入售后申请页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 358
+        },
+        {
+          "index": 9,
+          "raw": "等待售后表单加载",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1203
+        },
+        {
+          "index": 10,
+          "raw": "断言售后申请页渲染",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 324
+        },
+        {
+          "index": 11,
+          "raw": "填写问题说明",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 320
+        },
+        {
+          "index": 12,
+          "raw": "断言存在提交申请按钮",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 311
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 6355,
+      "seconds": 6.4
+    },
+    {
+      "caseId": "TC-1182",
+      "caseTitle": "验收点3：C 端列表不出现 OFF 或已删除的 SPU",
+      "module": "商品与类目",
+      "pageObject": "商品搜索流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入首页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 581
+        },
+        {
+          "index": 2,
+          "raw": "输入搜索关键词",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 3,
+          "raw": "点击搜索",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 329
+        },
+        {
+          "index": 4,
+          "raw": "等待搜索结果",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1305
+        },
+        {
+          "index": 5,
+          "raw": "断言跳转到搜索结果页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 305
+        },
+        {
+          "index": 6,
+          "raw": "断言搜索结果非空",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 3155,
+      "seconds": 3.2
+    },
+    {
+      "caseId": "TC-1024",
+      "caseTitle": "会员等级正确展示",
+      "module": "会员",
+      "pageObject": "商品详情流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1368
+        },
+        {
+          "index": 2,
+          "raw": "等待商品详情加载",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1003
+        },
+        {
+          "index": 3,
+          "raw": "断言详情页操作区渲染",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 327
+        },
+        {
+          "index": 4,
+          "raw": "断言价格展示",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 5,
+          "raw": "断言存在规格选择入口",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 307
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 3313,
+      "seconds": 3.4
+    },
+    {
+      "caseId": "TC-1558",
+      "caseTitle": "验收点3：地址 ID 在前端保持字符串不丢精度",
+      "module": "购物车与个人中心",
+      "pageObject": "地址管理流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 604
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 313
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 336
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1653
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 8,
+          "raw": "进入收货地址",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 375
+        },
+        {
+          "index": 9,
+          "raw": "等待地址列表",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1003
+        },
+        {
+          "index": 10,
+          "raw": "断言地址页渲染",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 321
+        },
+        {
+          "index": 11,
+          "raw": "断言存在新增地址入口",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 310
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 5864,
+      "seconds": 5.9
+    },
+    {
+      "caseId": "TC-1003",
+      "caseTitle": "订单创建后库存扣减",
+      "module": "订单",
+      "pageObject": "完整下单流程",
+      "writeFlow": true,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 706
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 338
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 362
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 335
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1504
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 8,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 348
+        },
+        {
+          "index": 9,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 805
+        },
+        {
+          "index": 10,
+          "raw": "打开规格选择抽屉",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 352
+        },
+        {
+          "index": 11,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 703
+        },
+        {
+          "index": 12,
+          "raw": "选择容量规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 332
+        },
+        {
+          "index": 13,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 14,
+          "raw": "选择颜色规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 15,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 405
+        },
+        {
+          "index": 16,
+          "raw": "点击立即购买",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 331
+        },
+        {
+          "index": 17,
+          "raw": "等待确认下单信息弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1002
+        },
+        {
+          "index": 18,
+          "raw": "确认下单信息",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 330
+        },
+        {
+          "index": 19,
+          "raw": "等待确认订单页",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 2206
+        },
+        {
+          "index": 20,
+          "raw": "断言进入确认订单页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 21,
+          "raw": "断言存在提交订单按钮",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 22,
+          "raw": "点击提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 335
+        },
+        {
+          "index": 23,
+          "raw": "等待二次确认弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1203
+        },
+        {
+          "index": 24,
+          "raw": "二次确认提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 25,
+          "raw": "等待订单创建",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 3004
+        },
+        {
+          "index": 26,
+          "raw": "断言跳转收银台",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 27,
+          "raw": "断言展示新订单号",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 17396,
+      "seconds": 17.5
+    },
+    {
+      "caseId": "TC-1028",
+      "caseTitle": "验收点1：待付款/已关闭订单不能申请售后",
+      "module": "售后",
+      "pageObject": "收银台支付闭环",
+      "writeFlow": true,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1020
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 333
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 317
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1503
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 8,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 349
+        },
+        {
+          "index": 9,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 803
+        },
+        {
+          "index": 10,
+          "raw": "打开规格选择抽屉",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 351
+        },
+        {
+          "index": 11,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 703
+        },
+        {
+          "index": 12,
+          "raw": "选择容量规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 327
+        },
+        {
+          "index": 13,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 301
+        },
+        {
+          "index": 14,
+          "raw": "选择颜色规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 333
+        },
+        {
+          "index": 15,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 402
+        },
+        {
+          "index": 16,
+          "raw": "点击立即购买",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 17,
+          "raw": "等待确认下单信息弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1001
+        },
+        {
+          "index": 18,
+          "raw": "确认下单信息",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 331
+        },
+        {
+          "index": 19,
+          "raw": "等待确认订单页",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 2204
+        },
+        {
+          "index": 20,
+          "raw": "断言进入确认订单页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 302
+        },
+        {
+          "index": 21,
+          "raw": "断言存在提交订单按钮",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 305
+        },
+        {
+          "index": 22,
+          "raw": "点击提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 320
+        },
+        {
+          "index": 23,
+          "raw": "等待二次确认弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1203
+        },
+        {
+          "index": 24,
+          "raw": "二次确认提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 25,
+          "raw": "等待订单创建",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 3003
+        },
+        {
+          "index": 26,
+          "raw": "断言跳转收银台",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 301
+        },
+        {
+          "index": 27,
+          "raw": "断言展示新订单号",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 306
+        },
+        {
+          "index": 28,
+          "raw": "断言收银台返回支付成功",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 312
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 17947,
+      "seconds": 18.0
+    },
+    {
+      "caseId": "TC-1001",
+      "caseTitle": "正确账号密码登录成功",
+      "module": "登录",
+      "pageObject": "登录流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 571
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 339
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 314
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1504
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 312
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 3672,
+      "seconds": 3.7
+    },
+    {
+      "caseId": "TC-1036",
+      "caseTitle": "验收点2：带上会员 token 时可查询本人订单",
+      "module": "AI 助手",
+      "pageObject": "订单列表流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 566
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 327
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 315
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 330
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1503
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 8,
+          "raw": "进入我的订单",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 363
+        },
+        {
+          "index": 9,
+          "raw": "等待订单列表加载",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1603
+        },
+        {
+          "index": 10,
+          "raw": "断言订单页标题",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 331
+        },
+        {
+          "index": 11,
+          "raw": "断言订单列表存在订单",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 310
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 6260,
+      "seconds": 6.3
+    },
+    {
+      "caseId": "TC-1409",
+      "caseTitle": "验收点4：取消已关闭订单返回成功且库存不再二次释放",
+      "module": "订单交易",
+      "pageObject": "订单详情流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 823
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 327
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 317
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 335
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1504
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 8,
+          "raw": "进入我的订单",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 346
+        },
+        {
+          "index": 9,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1603
+        },
+        {
+          "index": 10,
+          "raw": "打开第一条订单详情",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 353
+        },
+        {
+          "index": 11,
+          "raw": "等待订单详情加载",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1403
+        },
+        {
+          "index": 12,
+          "raw": "断言进入订单详情页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 13,
+          "raw": "断言详情页展示订单信息",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 311
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 8232,
+      "seconds": 8.3
+    },
+    {
+      "caseId": "TC-1506",
+      "caseTitle": "[NEG-S10] 分页 size、feedSize、购物车项数无上限",
+      "module": "首页与运营",
+      "pageObject": "购物车流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 707
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 318
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 328
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1503
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 315
+        },
+        {
+          "index": 8,
+          "raw": "进入购物车",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 365
+        },
+        {
+          "index": 9,
+          "raw": "等待购物车列表加载",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1304
+        },
+        {
+          "index": 10,
+          "raw": "断言购物车页面渲染",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 324
+        },
+        {
+          "index": 11,
+          "raw": "断言存在结算入口（购物车非空且已选商品）",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 6105,
+      "seconds": 6.2
+    },
+    {
+      "caseId": "TC-1035",
+      "caseTitle": "验收点1：游客可在浮窗发起对话",
+      "module": "AI 助手",
+      "pageObject": "首页浏览流程",
+      "writeFlow": false,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入首页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1363
+        },
+        {
+          "index": 2,
+          "raw": "等待首页渲染",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 902
+        },
+        {
+          "index": 3,
+          "raw": "断言首页品牌标题",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 322
+        },
+        {
+          "index": 4,
+          "raw": "断言首页存在商品卡片",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 306
+        }
+      ],
+      "screenshot": "",
+      "durationMs": 2893,
+      "seconds": 3.0
+    }
+  ]
+}

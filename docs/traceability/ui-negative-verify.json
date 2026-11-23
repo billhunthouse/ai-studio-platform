@@ -1,0 +1,10 @@
+{
+  "caseId": "TC-1001",
+  "A_baseline": "通过",
+  "B_brokenLocator": "失败",
+  "B_detail": "找不到输入框：input[placeholder='这个输入框不存在']",
+  "C_brokenAssertion": "失败",
+  "C_detail": "页面未出现预期文本「这段文本在页面上绝对不存在-XYZ」",
+  "D_restored": "通过",
+  "negativeTestPassed": true
+}

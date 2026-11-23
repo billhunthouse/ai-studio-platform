@@ -152,48 +152,76 @@ def compile_step(raw: str) -> StepIR:
 def compile_case(case: dict) -> dict:
     """编译一条功能测试用例。
 
-    增强：抽象步骤（design_check）按 module+title 匹配 Page Object 流程，
-    展开为真实可执行的 nav/click/fill 步骤（定位器来自真实 Vue 源码元素库）。
-    原抽象步骤保留为 note，不丢失测试意图。
+    v2 策略（真实执行导向）：
+    - 命中 Page Object 的用例，**整体替换**为 PO 的真实操作序列（含业务断言），
+      原中文步骤仅作为测试意图保留在 originalSteps；不再把"输入正确账号密码"这类
+      笼统步骤与 PO 步骤拼接，避免 {{TEST_VALUE}} 占位导致"部分可执行"。
+    - 未命中 PO 的用例按关键字编译，可执行的保留、抽象的标 design_check（诚实降级）。
     """
-    from .ui_page_objects import match_po, BASE_URL
+    from .ui_page_objects import match_po, BASE_URL, WRITE_FLOWS
 
     steps = case.get("steps") or []
     if isinstance(steps, str):
         steps = [s.strip() for s in steps.splitlines() if s.strip()]
     irs = [compile_step(str(s)) for s in steps]
-    # 预期结果也编译成一条 assert
     expected = (case.get("expected") or "").strip()
     if expected and not any(ir.keyword == "assert" for ir in irs):
         irs.append(StepIR("assert", {"expectation": expected}, f"验证：{expected}",
                           confidence="medium", note="来自用例预期结果"))
 
-    # Page Object 展开：如果有抽象步骤，尝试匹配可复用流程
     po_name = ""
-    has_abstract = any(ir.is_design_check or ir.keyword == "unknown" for ir in irs)
-    if has_abstract:
-        matched = match_po(case.get("module", ""), case.get("title", ""))
-        if matched:
-            po_name, po_steps = matched
-            # 在原抽象步骤位置插入 PO 步骤，原步骤保留为说明
-            expanded: list[StepIR] = []
-            inserted = False
-            for ir in irs:
-                if ir.is_design_check or ir.keyword == "unknown":
-                    if not inserted:
-                        for ps in po_steps:
-                            expanded.append(StepIR(
-                                keyword=ps.keyword, args=ps.args, raw=ps.raw,
-                                confidence="high", note=f"由 PO「{po_name}」展开（原意图：{ir.raw[:40]}）",
-                            ))
-                        inserted = True
-                    continue  # 所有抽象步骤都被 PO 吸收，不重复展开
-                expanded.append(ir)
-            irs = expanded
+    matched = match_po(case.get("module", ""), case.get("title", ""))
+    binding: dict[str, Any] = {}
+    # 显式绑定优先：人工确认过 pageId 的用例，用它推导 PO；否则退回标题猜测并标记来源。
+    try:
+        from .ui_bindings import KIND_UI_PO, SOURCE_HUMAN, resolve
+
+        binding = resolve(case)
+        if binding.get("source") != SOURCE_HUMAN:
+            # 未确认的绑定只作参考，不改变编译路径，避免规则猜测直接改变执行结论
+            binding["risk"] = "guess" if binding.get("kind") != KIND_UI_PO else "guess"
+    except Exception as exc:  # 绑定层异常不能阻断编译
+        binding = {"kind": "unbound", "reason": f"绑定解析失败: {exc}", "risk": "unknown"}
+
+    po_source = ""
+    if binding.get("source") == "human" and binding.get("kind") == "ui_po" and binding.get("poName"):
+        from .ui_page_objects import build_po
+
+        po_steps = build_po(binding["poName"])
+        if po_steps:
+            po_name = binding["poName"]
+            po_source = "human"
+            note = f"由 Page Object「{po_name}」展开（人工绑定页面「{binding.get('pageName')}」）"
+            irs = [StepIR(keyword=ps.keyword, args=ps.args, raw=ps.raw,
+                          confidence="high", note=note) for ps in po_steps]
+        else:
+            # 绑定指向的流程已不存在（改名/下线）→ 保留原步骤编译，并标记需修复
+            binding["risk"] = "stale_po"
+    elif binding.get("source") == "human" and binding.get("kind") in ("ui_page_no_po", "ui_ambiguous"):
+        # 人工绑定到了没有 PO 的页面：宁可不跑，也不退回规则猜一个无关流程。
+        # 这类用例进"缺口清单"，等写了该页的 PO 再自动变为可执行。
+        binding["risk"] = "blocked_no_po" if binding.get("kind") == "ui_page_no_po" else "blocked_ambiguous"
+    elif matched:
+        po_name, po_steps = matched
+        po_source = "rule"
+        note = f"由 Page Object「{po_name}」展开（原步骤 {len(steps)} 条，已折叠为真实 UI 操作）"
+        irs = [StepIR(keyword=ps.keyword, args=ps.args, raw=ps.raw,
+                      confidence="high", note=note) for ps in po_steps]
+
+    # 风险标记：规则认为这条用例不该走 UI（api/manual/该页无 PO）却被 PO 命中 → 假通过嫌疑
+    risk = "confirmed" if po_source == "human" else ("guess" if po_name else "none")
+    if po_source != "human" and po_name and binding.get("kind") in ("api", "manual", "ui_page_no_po"):
+        risk = "mismatch"
+    if binding.get("risk") in ("stale_po", "blocked_no_po", "blocked_ambiguous"):
+        risk = binding["risk"]
+    binding.update({"poSource": po_source or "none", "risk": risk})
 
     executable = sum(1 for ir in irs if ir.executable)
     design_checks = sum(1 for ir in irs if ir.is_design_check)
     unknown = len(irs) - executable - design_checks
+    summary_ready = executable > 0 and design_checks == 0 and unknown == 0
+    if risk in ("blocked_no_po", "blocked_ambiguous"):
+        summary_ready = False
     return {
         "caseId": case.get("id", ""),
         "caseTitle": case.get("title", ""),
@@ -203,74 +231,104 @@ def compile_case(case: dict) -> dict:
         "summary": {
             "total": len(irs), "executable": executable,
             "designChecks": design_checks, "unknown": unknown,
-            "ready": executable > 0 and design_checks == 0 and unknown == 0,
+            "ready": summary_ready,
             "uiRunnable": executable > 0,
             "pageObject": po_name,
+            "writeFlow": po_name in WRITE_FLOWS,
+            "assertions": sum(1 for ir in irs if ir.keyword == "assert"),
+            "binding": binding,
         },
+        "originalSteps": [str(s) for s in steps][:12],
         "baseUrl": BASE_URL,
         "stepDelayMs": STEP_DELAY_MS,
     }
 
 
 def to_playwright_script(ir_case: dict) -> str:
-    """把 IR 生成可读、可复用、可导出的 Playwright Python 脚本。"""
+    """把 IR 生成可读、可复用、可导出的 Playwright Python 脚本。
+
+    断言语义与执行器完全一致（url / url_not / text / no_text / count），
+    导出的脚本可直接 `python case.py` 独立复跑。
+    """
+    base = ir_case["baseUrl"]
     lines = [
         "from playwright.sync_api import sync_playwright",
         "import json",
         "",
+        f'BASE = "{base}"',
         "",
-        f"def run(page):",
+        "",
+        "def run(page):",
         f'    """{ir_case["caseTitle"]} · {ir_case["caseId"]}"""',
-        f'    page.goto("{ir_case["baseUrl"]}")',
+        "    page.goto(BASE)",
         "",
     ]
     for i, s in enumerate(ir_case["steps"], 1):
         ir = StepIR(**s) if isinstance(s, dict) else s
         lines.append(f"    # {i}. {ir.raw}")
         if not ir.executable:
-            cat = a.get("category", "unknown") if (a := ir.args) else "unknown"
+            cat = ir.args.get("category", "unknown")
             lines.append(f"    # [{cat}] {ir.note or '无法自动映射为 UI 操作'}")
             lines.append("    pass")
             lines.append("")
             continue
         kw, a = ir.keyword, ir.args
         if kw == "nav":
-            lines.append(f'    page.goto("{ir_case["baseUrl"]}{a.get("target", "") if str(a.get("target", "")).startswith("/") else ""}")')
+            tgt = str(a.get("target", ""))
+            url = f'BASE + {tgt!r}' if tgt.startswith("/") else (tgt or "BASE")
+            lines.append(f"    page.goto({url}, wait_until='domcontentloaded', timeout=15000)")
         elif kw == "click":
-            lines.append(f'    page.locator(\'{a.get("locator", "")}\').first.click()')
+            lines.append(f"    page.locator({a.get('locator', '')!r}).first.click(timeout=6000)")
         elif kw == "fill":
-            lines.append(f'    page.locator(\'{a.get("locator", "")}\').first.fill(\'{a.get("value", "")}\')')
+            lines.append(f"    page.locator({a.get('locator', '')!r}).first.fill({str(a.get('value', ''))!r}, timeout=6000)")
         elif kw == "select":
-            lines.append(f'    page.locator(\'{a.get("locator", "")}\').first.select_option(label=\'{a.get("value", "")}\')')
+            lines.append(f"    page.locator({a.get('locator', '')!r}).first.select_option(label={str(a.get('value', ''))!r}, timeout=6000)")
         elif kw == "check":
-            lines.append(f'    page.locator(\'{a.get("locator", "")}\').first.check()')
+            lines.append(f"    page.locator({a.get('locator', '')!r}).first.check(timeout=6000)")
         elif kw == "wait":
-            lines.append(f'    page.wait_for_timeout({a.get("durationMs", STEP_DELAY_MS)})')
+            lines.append(f"    page.wait_for_timeout({a.get('durationMs', STEP_DELAY_MS)})")
+        elif kw == "scroll":
+            lines.append("    page.mouse.wheel(0, 500)")
         elif kw == "screenshot":
-            lines.append(f'    page.screenshot(path=f"/tmp/ui_{ir_case["caseId"]}_{i}.png")')
+            lines.append(f"    page.screenshot(path={('/tmp/ui_%s_%d.png' % (ir_case['caseId'], i))!r})")
         elif kw == "assert":
-            exp = str(a.get("expectation", "")).replace("'", "\\'")
-            lines.append(f'    # 断言：{exp}')
-            lines.append(f'    assert page.locator("body").count() > 0, "页面未正常加载"')
+            kind = a.get("kind")
+            tgt = str(a.get("target", a.get("expectation", "")))
+            if kind == "url":
+                lines.append(f"    assert {tgt!r} in page.url, f'断言失败：URL 应包含 {tgt}，实际 {{page.url}}'")
+            elif kind == "url_not":
+                lines.append(f"    assert {tgt!r} not in page.url, f'断言失败：URL 不应包含 {tgt}，实际 {{page.url}}'")
+            elif kind == "text":
+                lines.append(f"    assert {tgt!r} in page.locator('body').inner_text(), {('断言失败：页面应包含 %r' % tgt)!r}")
+            elif kind == "no_text":
+                lines.append(f"    assert {tgt!r} not in page.locator('body').inner_text(), {('断言失败：页面不应包含 %r' % tgt)!r}")
+            elif kind == "count":
+                lines.append(f"    assert page.locator({tgt!r}).count() >= {a.get('min', 1)}, "
+                             f"{('断言失败：元素数量不足 %r' % tgt)!r}")
+            else:
+                exp = str(a.get("expectation", ""))
+                lines.append(f"    # 语义断言（需人工核对）：{exp}")
+                lines.append("    assert page.locator('body').count() > 0, '页面未正常加载'")
         else:
             lines.append("    pass")
-        lines.append(f"    page.wait_for_timeout({STEP_DELAY_MS})  # 步骤间节流")
+        if kw != "wait":
+            lines.append(f"    page.wait_for_timeout({STEP_DELAY_MS})  # 步骤间节流")
         lines.append("")
     lines += [
         "",
         "if __name__ == '__main__':",
-        f"    with sync_playwright() as p:",
-        f'        browser = p.chromium.launch(headless=True)',
-        f'        context = browser.new_context(viewport={{"width": 1440, "height": 900}})',
-        f'        page = context.new_page()',
-        f"        try:",
-        f"            run(page)",
-        f'            print(json.dumps({{"caseId": "{ir_case["caseId"]}", "verdict": "通过"}}, ensure_ascii=False))',
-        f"        except Exception as e:",
-        f'            print(json.dumps({{"caseId": "{ir_case["caseId"]}", "verdict": "失败", "error": str(e)}}, ensure_ascii=False))',
-        f"        finally:",
-        f"            context.close()",
-        f"            browser.close()",
+        "    with sync_playwright() as p:",
+        "        browser = p.chromium.launch(headless=True)",
+        "        context = browser.new_context(viewport={'width': 1440, 'height': 900})",
+        "        page = context.new_page()",
+        "        try:",
+        "            run(page)",
+        f"            print(json.dumps({{'caseId': '{ir_case['caseId']}', 'verdict': '通过'}}, ensure_ascii=False))",
+        "        except Exception as e:",
+        f"            print(json.dumps({{'caseId': '{ir_case['caseId']}', 'verdict': '失败', 'error': str(e)[:300]}}, ensure_ascii=False))",
+        "        finally:",
+        "            context.close()",
+        "            browser.close()",
     ]
     return "\n".join(lines)
 

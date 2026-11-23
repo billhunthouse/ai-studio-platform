@@ -176,6 +176,27 @@ class UiRunRequest(BaseModel):
     delayMs: int | None = None  # 步骤间延时，默认 300ms
 
 
+class UiRunOneRequest(BaseModel):
+    """单条用例真实执行（页面上选一条 → 逐步跑一遍）。
+
+    与批量不同：这里只需要一条用例的完整回放证据（每步状态、断言、截图），
+    写操作用例必须 force=True 显式确认，避免页面误点产生真实订单。
+    """
+    caseId: str
+    delayMs: int | None = None
+    force: bool = False
+
+
+class UiBatchRequest(BaseModel):
+    """批量真实执行（100+ 条场景）：后台任务 + 轮询进度。"""
+    limit: int = Field(default=20, ge=1, le=500)
+    maxWrite: int = Field(default=3, ge=0, le=50)   # 下单/支付类写操作配额
+    delayMs: int | None = None
+    caseIds: list[str] = Field(default_factory=list)
+    # 只跑"页面已人工确认绑定"的用例：把质量指标落到执行策略上
+    onlyConfirmed: bool = False
+
+
 class ToolRun(BaseModel):
     params: dict[str, str] = Field(default_factory=dict)
 

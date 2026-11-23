@@ -5,7 +5,7 @@ import { MENUS, resolveNav, tabHref, type MenuItem } from "@/config/menu";
 import { useApp } from "@/store/app";
 import { useAuth } from "@/store/auth";
 import { cx } from "@/lib/cx";
-import { NotificationCenter, ProjectSwitcher, TaskDock } from "@/components/business";
+import { NotificationCenter, ProjectSwitcher, TaskDock, ErrorBoundary } from "@/components/business";
 import { Icon, ToastStack, type IconName } from "@/components/ui";
 
 const MENU_ICONS: Record<string, IconName> = {
@@ -38,7 +38,6 @@ const PAGE_HINTS: Record<string, string> = {
   requirements: "按业务模块组织需求，支持上传、拆分与生成用例",
   testcases: "编写、评审与导入导出测试用例",
   api: "管理接口定义、调试与执行报告",
-  webui: "维护元素库、脚本、录制与执行记录",
   app: "管理设备、UI Flow 与 App 执行记录",
   ai: "用知识库上下文驱动对话与工作流",
   knowledge: "管理知识库文档、切片与召回测试",
@@ -212,7 +211,9 @@ export function AppShell({ layer }: { layer: Layer }) {
             <div className="mt-1 flex items-end justify-between gap-6">
               <div>
                 <h1 className="text-[26px] font-semibold tracking-[-0.03em] text-ink-900">{menu.label}</h1>
-                <div className="mt-1 text-[12px] text-ink-500">{PAGE_HINTS[menu.key] ?? (layer === "project" ? "当前项目的测试资产与执行情况" : layer === "admin" ? "平台级配置与治理" : "全局工作台与组织协作")}</div>
+                {PAGE_HINTS[menu.key] && (
+                  <div className="mt-1 text-[12px] text-ink-500">{PAGE_HINTS[menu.key]}</div>
+                )}
               </div>
             </div>
             {visibleTabs.length > 1 ? (
@@ -236,9 +237,11 @@ export function AppShell({ layer }: { layer: Layer }) {
             )}
           </div>
           <div className="mx-auto w-full max-w-[1600px] p-6 pb-16 lg:p-8">
-            <Suspense fallback={<div className="grid h-40 place-items-center text-xs text-ink-500">加载中…</div>}>
-              <Outlet />
-            </Suspense>
+            <ErrorBoundary inline resetKey={`${location.pathname}${location.search}`}>
+              <Suspense fallback={<div className="grid h-40 place-items-center text-xs text-ink-500">加载中…</div>}>
+                <Outlet />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </main>
       </div>

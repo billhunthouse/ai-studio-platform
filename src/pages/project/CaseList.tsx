@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { testcasesApi } from "@/api";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { testcasesApi, webuiApi } from "@/api";
+import type { UiCaseIndexItem, UiRunOneResult } from "@/api/webui";
 import type { CaseRunReport, TestCase } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
@@ -8,6 +9,7 @@ import { useAuth } from "@/store/auth";
 import { confirmDelete } from "@/lib/confirm";
 import { downloadBlob } from "@/lib/download";
 import { Btn, Card, Field, Input, Modal, Select, Table, Tag, Textarea, Toolbar } from "@/components/ui";
+import { CaseBindingModal } from "./CaseBindingModal";
 
 const EMPTY = { title: "", module: "会员", type: "正向", priority: "P1" as TestCase["priority"], precondition: "", steps: "", expected: "" };
 
@@ -179,6 +181,96 @@ function RunModal({ target, onClose, onDone }: {
   );
 }
 
+/** 已自动化的功能用例：直接驱动真实浏览器跑一遍，逐步回显 */
+function UiRunModal({ target, writeFlow, onClose, onDone }: {
+  target: TestCase | null;
+  writeFlow: boolean;
+  onClose: () => void;
+  onDone: (id: string, verdict: string) => void;
+}) {
+  const { toast } = useApp();
+  const navigate = useNavigate();
+  const { pid = "ecommerce" } = useParams<{ pid: string }>();
+  const [report, setReport] = useState<UiRunOneResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [force, setForce] = useState(false);
+
+  const run = async () => {
+    if (!target) return;
+    setBusy(true);
+    setReport(null);
+    try {
+      const r = await webuiApi.runOne({ caseId: target.id, delayMs: 300, force: force || !writeFlow });
+      setReport(r);
+      onDone(target.id, r.verdict);
+      toast(`UI 自动化执行完成：${r.verdict} · 断言 ${r.assertionsPassed}/${r.assertions}`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "UI 自动化执行失败");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal open={!!target} title={target ? `UI 自动化执行 · ${target.id}` : ""} width="max-w-2xl"
+      onClose={onClose}
+      footer={
+        <>
+          <Btn v="ghost" onClick={onClose}>关闭</Btn>
+          <Btn v="secondary" onClick={() => navigate(`/project/${pid}/webui/runs`)}>打开执行记录</Btn>
+          <Btn onClick={run} disabled={busy || (writeFlow && !force)}>{busy ? "执行中…" : report ? "重新执行" : "开始执行"}</Btn>
+        </>
+      }>
+      {target && (
+        <div className="space-y-3 text-xs">
+          <div className="rounded-lg bg-ink-50/60 px-3 py-2">
+            <div className="font-medium text-ink-800">{target.title}</div>
+            <div className="mt-1 flex items-center gap-2">
+              <Tag t="已转为自动化脚本" c="green" dot={false} />
+              <span className="text-[10px] text-ink-500">真实浏览器逐步执行 · 每步截图 + 录屏</span>
+            </div>
+          </div>
+          {writeFlow && (
+            <label className="flex items-center gap-1.5 text-[11px] text-amber-700">
+              <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
+              该用例会真实下单/支付，勾选确认后再执行
+            </label>
+          )}
+          {!report && <p className="text-[11px] leading-5 text-ink-500">点击「开始执行」，平台会把用例步骤展开成关键字脚本并在尚品汇真实前端跑一遍，失败会停在出错那一步并留证。</p>}
+          {report && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-ink-500">判定</span>
+                <Tag t={report.verdict} c={report.verdict === "通过" ? "green" : report.verdict === "失败" ? "red" : "amber"} dot={false} />
+                <span className="text-ink-500">步骤 {report.steps.filter((s) => s.status === "passed").length}/{report.steps.length}</span>
+                <span className="text-ink-500">断言 {report.assertionsPassed}/{report.assertions}</span>
+                <span className="text-ink-500">{(report.durationMs / 1000).toFixed(1)}s</span>
+              </div>
+              <div className="overflow-hidden rounded-lg border border-line">
+                {report.steps.map((s) => (
+                  <div key={s.index} className="flex items-center gap-2 border-b border-line/60 px-2.5 py-1 text-[11px] last:border-0">
+                    <span className="w-5 font-mono text-ink-400">{s.index}</span>
+                    <span className="min-w-0 flex-1 truncate text-ink-700">{s.raw}</span>
+                    <span className="font-mono text-[10px] text-ink-400">{s.keyword}</span>
+                    <span className={s.status === "passed" ? "text-green-600" : s.status === "failed" ? "text-red-600" : "text-amber-600"}>
+                      {s.status === "passed" ? "通过" : s.status === "failed" ? "失败" : "待补全"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-[10px] text-ink-500">
+                <span>最终页面：<span className="break-all font-mono text-brand-600">{report.finalUrl || "—"}</span></span>
+                <span>{report.stepShots.length} 张截图{report.videoUrl ? " · 已录屏" : ""}</span>
+                {report.orderNo && <span className="text-green-700">订单号 {report.orderNo}</span>}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 export function CaseList() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -187,19 +279,30 @@ export function CaseList() {
   const { data, setData, reload, loading } = useAsync(
     () => testcasesApi.list(reqFilter || undefined), [reqFilter], [] as TestCase[]);
   const { user } = useAuth();
+  // 自动化索引：判断每条用例是否已转成可执行脚本（有 PO 映射、步骤可展开）
+  const { data: autoIndex, reload: reloadAuto } = useAsync<{ cases: UiCaseIndexItem[] } | null>(
+    async () => await webuiApi.caseIndex(), [], null);
+  const autoMap = new Map((autoIndex?.cases ?? []).map((c) => [c.caseId, c]));
+  // 列表默认只给在册用例，被去重归档的副本不显示——但必须让人知道"少了多少、去哪还原"，
+  // 否则第一反应是"数据丢了"。
+  const { data: dedupInfo } = useAsync<{ alreadyArchived: number } | null>(
+    async () => await webuiApi.dedup(), [], null);
+  const archivedCount = dedupInfo?.alreadyArchived ?? 0;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("全部状态");
-  const [typeFilter, setTypeFilter] = useState("全部类型");
+  const [typeFilter, setTypeFilter] = useState("全部测试类型");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TestCase | null>(null);
   const [runTarget, setRunTarget] = useState<TestCase | null>(null);
+  const [uiTarget, setUiTarget] = useState<TestCase | null>(null);
+  const [bindTarget, setBindTarget] = useState<TestCase | null>(null);
   const [form, setForm] = useState(EMPTY);
   const fileRef = useRef<HTMLInputElement>(null);
   const { toast } = useApp();
 
   const list = data.filter((c) =>
     (status === "全部状态" || c.status === status)
-    && (typeFilter === "全部类型" || caseTypeOf(c) === (typeFilter === "API 测试" ? "api" : "functional"))
+    && (typeFilter === "全部测试类型" || caseTypeOf(c) === (typeFilter === "API 测试" ? "api" : "functional"))
     && (!query || c.title.includes(query) || c.id.includes(query)));
 
   const openCreate = () => { setEditing(null); setForm(EMPTY); setOpen(true); };
@@ -255,7 +358,7 @@ export function CaseList() {
     <>
       <Card>
         <Toolbar placeholder="搜索用例标题/编号" onSearch={setQuery} onStatusChange={setStatus} statusOptions={["全部状态", "通过", "待评审", "草稿"]}>
-          <Select opts={["全部类型", "API 测试", "功能测试"]} className="w-28" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} />
+          <Select opts={["全部测试类型", "API 测试", "功能测试"]} className="w-36" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} />
           {reqFilter && (
             <span className="mr-1 rounded-md bg-brand-50 px-2 py-1 font-mono text-[10px] text-brand-700 ring-1 ring-brand-100"
               title="按需求过滤中">
@@ -267,20 +370,56 @@ export function CaseList() {
           <input ref={fileRef} type="file" accept=".xlsx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importExcel(file); e.target.value = ""; }} />
           <Btn size="sm" onClick={openCreate}>+ 新建用例</Btn>
         </Toolbar>
+        {archivedCount > 0 && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-line bg-ink-50 px-3 py-1.5 text-[11.5px] text-ink-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-300" />
+            已隐藏 <b className="mx-0.5 tabular-nums text-ink-700">{archivedCount}</b> 条重复副本（同一场景被登记多次）。
+            它们保留在库中可回滚，去重与还原入口见
+            <Link className="text-brand-600 underline decoration-dotted" to={`/project/${pid}/webui/bindings`}>绑定体检</Link>。
+          </div>
+        )}
         <Table
-          cols={["ID", "标题", "模块", "测试类型", "类型", "优先级", "关联需求", "状态", "最近运行", "版本"]}
+          cols={["ID", "标题", "模块", "测试类型", "自动化", "绑定页面", "类型", "优先级", "关联需求", "状态", "最近运行"]}
           rows={list.map((c) => {
             const ct = caseTypeOf(c);
             const run = c.lastRun;
+            const b = autoMap.get(c.id)?.binding;
+            const riskDot: Record<string, string> = {
+              confirmed: "bg-emerald-500", guess: "bg-amber-400", mismatch: "bg-rose-500",
+              blocked_no_po: "bg-ink-300", stale_po: "bg-rose-400", none: "bg-ink-200",
+            };
+            const riskLabel: Record<string, string> = {
+              confirmed: "已人工确认绑定", guess: "规则推断，待确认", mismatch: "规则认为该用例更适合接口/数据校验，UI 跑通不代表验证了它",
+              blocked_no_po: "绑定的页面暂无 Page Object", stale_po: "绑定的流程已不存在，需重新绑定", none: "未绑定页面",
+            };
+            const bindText = ct === "api" ? "接口" : (b?.pageName || (b?.kind === "api" ? "非 UI" : "未绑定"));
             return [
-              c.id, c.title, c.module,
-              <span title={ct === "api" ? "API 测试用例：点击运行可真实执行" : "功能测试用例：人工按步骤执行并记录结果"}>
+              c.id,
+              <span className="block max-w-[180px] truncate" title={c.title}>{c.title}</span>,
+              <span className="block max-w-[72px] truncate text-[12px]" title={c.module}>{c.module}</span>,
+              <span title={ct === "api" ? "API 测试用例：点击运行可真实执行" : "功能测试用例：已转为自动化脚本的可直接驱动浏览器执行"}>
                 <Tag t={CASE_TYPE_CN[ct]} c={ct === "api" ? "blue" : "gray"} dot={false} />
               </span>,
+              ct === "api"
+                ? <span title="API 用例天然可自动化执行"><Tag t="是" c="blue" dot={false} /></span>
+                : autoMap.get(c.id)?.ready
+                  ? <span title={`已转化为自动化脚本（Page Object：${autoMap.get(c.id)?.pageObject || "—"}）`}><Tag t="是" c="green" dot={false} /></span>
+                  : <span title="尚未转化为自动化脚本：用例步骤无法映射到可执行 UI 操作"><Tag t="否" c="gray" dot={false} /></span>,
+              ct === "api"
+                ? <span className="text-[10px] text-ink-300">—</span>
+                : <span className="inline-flex max-w-[86px] items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${riskDot[b?.risk ?? "none"] ?? "bg-ink-200"}`} />
+                    <button type="button" onClick={() => setBindTarget(c)}
+                      className="truncate text-left text-[11px] text-ink-600 underline-offset-2 hover:text-brand-600 hover:underline"
+                      title={`${riskLabel[b?.risk ?? "none"] ?? ""}${b?.reason ? `：${b.reason}` : ""}`}>
+                      {bindText}
+                    </button>
+                  </span>,
               c.type, c.priority,
               (c.relatedRequirementIds ?? []).length > 0
-                ? <span className="font-mono text-[10px] text-brand-600" title={(c.relatedRequirementIds ?? []).join(", ")}>
-                    {(c.relatedRequirementIds ?? []).join(" / ")}
+                ? <span className="block max-w-[76px] truncate font-mono text-[10px] text-brand-600" title={(c.relatedRequirementIds ?? []).join(", ")}>
+                    {(c.relatedRequirementIds ?? [])[0]}
+                    {(c.relatedRequirementIds ?? []).length > 1 ? ` +${(c.relatedRequirementIds ?? []).length - 1}` : ""}
                   </span>
                 : <span className="text-[10px] text-ink-300">—</span>,
               c.status,
@@ -290,22 +429,33 @@ export function CaseList() {
                     <span className="text-[10px] text-ink-400">{run.at?.slice(5, 16)}</span>
                   </span>
                 : <span className="text-[10px] text-ink-300">未运行</span>,
-              c.version,
             ];
           })}
           loading={loading}
           empty="当前项目还没有测试用例"
           emptyAction={<Btn size="sm" onClick={openCreate}>+ 新建用例</Btn>}
           onRowClick={(i) => navigate(`/project/${pid}/testcases/${encodeURIComponent(list[i].id)}`)}
-          actions={(i) => (
-            <>
-              <Btn v="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setRunTarget(list[i]); }}>
-                运行
-              </Btn>
-              <Btn v="secondary" size="sm" onClick={(e) => { e.stopPropagation(); openEdit(list[i]); }}>编辑</Btn>
-              <Btn v="danger" size="sm" onClick={(e) => { e.stopPropagation(); remove(list[i].id); }}>删除</Btn>
-            </>
-          )}
+          actions={(i) => {
+            const ct = caseTypeOf(list[i]);
+            const auto = autoMap.get(list[i].id);
+            const uiRunnable = ct === "api" || !!auto?.ready;
+            return (
+              <>
+                <span title={!uiRunnable ? "尚未转化为自动化脚本，运行按钮不可用" : ct === "api" ? "真实调用后端接口执行" : "驱动真实浏览器执行 UI 步骤"}>
+                  <Btn v="secondary" size="sm" disabled={!uiRunnable}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (ct === "api") setRunTarget(list[i]);
+                      else setUiTarget(list[i]);
+                    }}>
+                    运行
+                  </Btn>
+                </span>
+                <Btn v="secondary" size="sm" onClick={(e) => { e.stopPropagation(); openEdit(list[i]); }}>编辑</Btn>
+                <Btn v="danger" size="sm" onClick={(e) => { e.stopPropagation(); remove(list[i].id); }}>删除</Btn>
+              </>
+            );
+          }}
         />
       </Card>
 
@@ -325,6 +475,28 @@ export function CaseList() {
 
       <RunModal target={runTarget} onClose={() => setRunTarget(null)}
         onDone={(updated) => setData(data.map((c) => (c.id === updated.id ? { ...c, lastRun: updated.lastRun } : c)))} />
+
+      <UiRunModal target={uiTarget} writeFlow={!!(uiTarget && autoMap.get(uiTarget.id)?.writeFlow)}
+        onClose={() => setUiTarget(null)}
+        onDone={(id, verdict) => setData(data.map((c) => (c.id === id
+          ? { ...c, lastRun: { at: new Date().toLocaleString("zh-CN", { hour12: false }).slice(0, 16), mode: "ui", verdict } }
+          : c)))} />
+
+      {bindTarget && (() => {
+        const b = autoMap.get(bindTarget.id)?.binding;
+        const isHuman = b?.source === "human";
+        return (
+          <CaseBindingModal
+            caseId={bindTarget.id}
+            caseTitle={bindTarget.title}
+            module={bindTarget.module}
+            current={b}
+            suggestion={!isHuman && b ? { pageId: b.pageId, pageName: b.pageName, poName: b.poName, kind: b.kind, reason: b.reason } : undefined}
+            onClose={() => setBindTarget(null)}
+            onSaved={() => { void reloadAuto(); toast("绑定已保存，下次执行按新页面走"); }}
+          />
+        );
+      })()}
     </>
   );
 }

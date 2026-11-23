@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { webuiApi } from "@/api";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { webuiApi, type UiCaseIndexItem, type UiRunOneResult } from "@/api/webui";
 import type { UiScript } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
@@ -11,11 +12,27 @@ type CompileDetail = {
   caseId: string; title: string; total: number; executable: number; unknown: number; ready: boolean;
 };
 type StepResult = {
-  index: number; raw: string; keyword: string; status: string; detail: string;
+  index: number; raw: string; keyword: string; status: string; detail: string; shot?: string;
 };
 type RunResult = {
   caseId: string; caseTitle: string; verdict: string; durationMs: number; screenshot: string;
   steps: StepResult[];
+};
+
+type BatchResult = {
+  generatedAt: string; target: string; batchId?: string;
+  compiled: { total: number; ready: number; partial: number; blocked: number };
+  executed: number; passed: number; failed: number; partial: number; skippedCount: number;
+  passRate: number; totalSeconds: number; writeExecuted: number;
+  byPageObject: Record<string, { total: number; passed: number; failed: number; partial: number }>;
+  failures: Array<{ caseId: string; caseTitle: string; pageObject: string; failedStep: string; detail: string; finalUrl: string; screenshot: string }>;
+  skippedCases: Array<{ caseId: string; caseTitle: string; pageObject: string; reason: string }>;
+  results: Array<{
+    caseId: string; caseTitle: string; module: string; pageObject: string; writeFlow: boolean;
+    verdict: string; assertions: number; assertionsPassed: number;
+    finalUrl: string; pageText: string; orderNos: string[]; screenshot: string; seconds: number;
+    steps: StepResult[];
+  }>;
 };
 
 const STATUS_CN: Record<string, string> = {
@@ -35,8 +52,109 @@ export function UiScripts() {
   } | null>(null);
   const [results, setResults] = useState<RunResult[] | null>(null);
   const [pool, setPool] = useState<{ browserAlive: boolean; activeContexts: number } | null>(null);
+  const [limit, setLimit] = useState(120);
+  const [maxWrite, setMaxWrite] = useState(8);
+  const [batch, setBatch] = useState<{ jobId: string; status: string; index: number; total: number; current: string } | null>(null);
+  const [batchResult, setBatchResult] = useState<BatchResult | null>(null);
+  // 单条执行
+  const [index, setIndex] = useState<{ total: number; ready: number; writeFlows: number; cases: UiCaseIndexItem[] } | null>(null);
+  const [q, setQ] = useState("");
+  const [targetId, setTargetId] = useState("");
+  const [allowWrite, setAllowWrite] = useState(false);
+  const [onlyConfirmed, setOnlyConfirmed] = useState(false);
+  const [one, setOne] = useState<UiRunOneResult | null>(null);
+  const [oneRunning, setOneRunning] = useState(false);
+  const [shotOpen, setShotOpen] = useState(false);
+  const [scriptOpen, setScriptOpen] = useState(false);
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [batchLink, setBatchLink] = useState("");
   const { addTask, toast } = useApp();
+  const navigate = useNavigate();
   const script = data.find((s) => s.id === selected) ?? data[0];
+
+  useEffect(() => {
+    webuiApi.caseIndex().then(setIndex).catch(() => undefined);
+  }, []);
+
+  // 支持从其它页面深链过来：?caseId=TC-1001 自动选中该用例
+  const [params] = useSearchParams();
+  useEffect(() => {
+    const cid = params.get("caseId");
+    if (cid) { setTargetId(cid); setQ(cid); }
+  }, [params]);
+
+  const target = index?.cases.find((c) => c.caseId === targetId);
+  const kw = q.trim();
+  const candidates = (index?.cases ?? []).filter(
+    (c) => !kw || c.caseId.toLowerCase().includes(kw.toLowerCase())
+      || c.title.includes(kw) || c.module.includes(kw) || c.pageObject.includes(kw),
+  );
+
+  const togglePick = (caseId: string) =>
+    setPicked((p) => (p.includes(caseId) ? p.filter((x) => x !== caseId) : [...p, caseId]));
+  const pickedInView = candidates.filter((c) => picked.includes(c.caseId));
+  const allPicked = candidates.length > 0 && pickedInView.length === candidates.length;
+  const togglePickAll = () => {
+    if (allPicked) setPicked((p) => p.filter((id) => !candidates.some((c) => c.caseId === id)));
+    else setPicked((p) => Array.from(new Set([...p, ...candidates.map((c) => c.caseId)])));
+  };
+
+  /** 单条用例：真实驱动浏览器跑一遍，逐步回放每步状态与断言 */
+  const runOne = async (item?: UiCaseIndexItem) => {
+    const c = item ?? target;
+    if (!c) { toast("请先在上方列表选择一条用例"); return; }
+    if (c.writeFlow && !allowWrite) { toast("这条用例会真实下单/支付，请先勾选「允许真实写操作」"); return; }
+    setTargetId(c.caseId);
+    setOneRunning(true);
+    setOne(null);
+    setExpandedStep(null);
+    addTask(`UI 单条执行 · ${c.caseId}`, "WebUI");
+    try {
+      const r = await webuiApi.runOne({ caseId: c.caseId, delayMs: 300, force: c.writeFlow && allowWrite });
+      setOne(r);
+      toast(`${r.caseId} 执行完成：${r.verdict} · 断言 ${r.assertionsPassed}/${r.assertions} · ${(r.durationMs / 1000).toFixed(1)}s`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "执行失败");
+    } finally {
+      setOneRunning(false);
+    }
+  };
+
+  /** 勾选多条 → 作为一次批量执行（执行记录里折叠成一条批次） */
+  const runSelected = async () => {
+    const items = picked
+      .map((id) => index?.cases.find((c) => c.caseId === id))
+      .filter(Boolean) as UiCaseIndexItem[];
+    if (items.length === 0) { toast("请先勾选用例"); return; }
+    const writeCount = items.filter((x) => x.writeFlow).length;
+    if (writeCount > 0 && !allowWrite) {
+      toast(`选中的用例里有 ${writeCount} 条会真实下单/支付，请先勾选「允许真实写操作」`);
+      return;
+    }
+    if (items.length === 1) { await runOne(items[0]); return; }
+
+    setOneRunning(true);
+    setOne(null);
+    setBatchResult(null);
+    setBatchLink("");
+    addTask(`UI 批量执行 · ${items.length} 条`, "WebUI");
+    try {
+      const r = await webuiApi.runBatch({
+        limit: items.length,
+        maxWrite: allowWrite ? Math.max(maxWrite, writeCount) : 0,
+        delayMs: 300,
+        caseIds: items.map((x) => x.caseId),
+        onlyConfirmed,
+      });
+      setBatch({ jobId: r.jobId, status: "running", index: 0, total: items.length, current: "启动中…" });
+      void poll(r.jobId);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "批量执行失败");
+      setOneRunning(false);
+    }
+  };
+
 
   useEffect(() => {
     if (script) { setSelected(script.id); setDraft(script.content); }
@@ -63,19 +181,43 @@ export function UiScripts() {
     }
   };
 
-  /** 第二步：共享浏览器池真实执行（步骤间 300ms 节流） */
+  /** 第二步：批量真实执行（后台任务 + 轮询）——100+ 条同步会 HTTP 超时 */
   const runAll = async () => {
     setRunning(true);
     setResults(null);
-    addTask("WebUI 自动化执行 · 共享浏览器池", "WebUI");
+    setBatchResult(null);
+    addTask(`WebUI 批量真实执行 · ${limit} 条`, "WebUI");
     try {
-      const r = await webuiApi.runCases({ delayMs: 300 });
-      setResults(r.results);
-      toast(`执行完成：通过 ${r.passed} / 失败 ${r.failed} / 待补全 ${r.partial}`);
+      const r = await webuiApi.runBatch({ limit, maxWrite, delayMs: 300 });
+      setBatch({ jobId: r.jobId, status: "running", index: 0, total: limit, current: "启动中…" });
+      void poll(r.jobId);
     } catch (e) {
       toast(e instanceof Error ? e.message : "执行失败");
-    } finally {
       setRunning(false);
+    }
+  };
+
+  const poll = async (jobId: string) => {
+    try {
+      const s = await webuiApi.runBatchStatus(jobId);
+      setBatch({ jobId, status: s.status, index: s.index, total: s.total, current: s.current });
+      if (s.status === "running") {
+        window.setTimeout(() => void poll(jobId), 2500);
+        return;
+      }
+      setRunning(false);
+      setOneRunning(false);
+      if (s.status === "finished" && s.result) {
+        setBatchResult(s.result);
+        if (s.result.batchId) setBatchLink(`/project/ecommerce/webui/runs/${s.result.batchId}`);
+        toast(`真实执行完成：通过 ${s.result.passed} / 失败 ${s.result.failed} / 共 ${s.result.executed} 条`);
+      } else {
+        toast(s.error || "执行任务失败");
+      }
+    } catch (e) {
+      setRunning(false);
+      setOneRunning(false);
+      toast(e instanceof Error ? e.message : "轮询失败");
     }
   };
 
@@ -100,6 +242,187 @@ export function UiScripts() {
 
   return (
     <div className="space-y-4">
+      {/* 单条用例执行：选一条 → 真实跑一遍 → 逐步回放 */}
+      <Card title="单条用例执行" extra={
+        <span className="text-[11px] text-ink-500">
+          {index ? `${index.ready}/${index.total} 条可直接执行 · 写操作用例 ${index.writeFlows} 条` : "正在加载用例索引…"}
+        </span>
+      }>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input className="w-72" value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="搜索用例 ID / 标题 / 模块，如 TC-1001 或 登录" />
+          <Btn onClick={() => void runOne()} disabled={!target || oneRunning || (target.writeFlow && !allowWrite)}>
+            {oneRunning ? "真实执行中…" : "运行这条用例"}
+          </Btn>
+          <Btn v="secondary" onClick={() => void runSelected()} disabled={picked.length === 0 || oneRunning}>
+            {oneRunning ? "执行中…" : `执行选中 ${picked.length} 条`}
+          </Btn>
+          <label className="flex items-center gap-1.5 text-[11px] text-ink-600">
+            <input type="checkbox" className="accent-brand-600" checked={allowWrite}
+              onChange={(e) => setAllowWrite(e.target.checked)} />
+            允许真实写操作（下单 / 支付）
+          </label>
+          <label className="flex items-center gap-1.5 text-[11px] text-ink-600" title="只跑页面绑定已人工确认的用例，避免用无关流程刷通过率">
+            <input type="checkbox" className="accent-brand-600" checked={onlyConfirmed}
+              onChange={(e) => setOnlyConfirmed(e.target.checked)} />
+            只跑已确认绑定
+          </label>
+          <span className="text-[11px] text-ink-400">真实浏览器逐步执行 · 步骤间 300ms · 返回断言与截图</span>
+        </div>
+
+        <div className="mt-2 overflow-hidden rounded-lg border border-line">
+          <div className="flex items-center gap-2 border-b border-line bg-ink-50/60 px-2.5 py-1.5 text-[10px] text-ink-500">
+            <input type="checkbox" className="accent-brand-600" checked={allPicked} onChange={togglePickAll} />
+            <span>全选当前 {candidates.length} 条</span>
+            <span className="ml-auto">已勾选 {picked.length} 条{pickedInView.length !== picked.length ? `（本页 ${pickedInView.length}）` : ""}</span>
+          </div>
+          <div className="max-h-56 overflow-auto">
+            {candidates.length === 0 && (
+              <div className="px-3 py-4 text-[11px] text-ink-400">
+                {index ? "没有匹配的用例" : "加载中…"}
+              </div>
+            )}
+            {candidates.map((c) => (
+              <div key={c.caseId}
+                className={cx("flex items-center gap-2 border-b border-line/60 px-2.5 py-1.5 text-[11px] last:border-0",
+                  c.caseId === targetId ? "bg-brand-50" : "hover:bg-ink-50")}>
+                <input type="checkbox" className="accent-brand-600" checked={picked.includes(c.caseId)}
+                  onChange={() => togglePick(c.caseId)} title="勾选后可批量执行" />
+                <button onClick={() => setTargetId(c.caseId)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                  <span className="w-20 shrink-0 font-mono text-ink-400">{c.caseId}</span>
+                  <span className={cx("min-w-0 flex-1 truncate", c.caseId === targetId ? "text-brand-700" : "text-ink-800")}>{c.title}</span>
+                  <span className="w-28 shrink-0 truncate text-ink-400">{c.pageObject || "无 UI 流程"}</span>
+                  <span className="w-16 shrink-0 text-right text-ink-400">{c.executable}/{c.totalSteps} 步</span>
+                  {c.assertions > 0 && <span className="w-12 shrink-0 text-right text-ink-400">{c.assertions} 断言</span>}
+                  {c.writeFlow && <Tag t="写操作" c="amber" dot={false} />}
+                  {!c.ready && <Tag t="需补全" c="gray" dot={false} />}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-2 text-[11px] text-ink-500">
+          {target ? (
+            <>
+              已选 <span className="font-mono text-ink-700">{target.caseId}</span>
+              {" · "}{target.module}{" · "}{target.pageObject || "无对应 Page Object"}
+              {" · "}断言 {target.assertions} 个
+              {target.writeFlow && <span className="text-amber-600"> · 该用例会真实创建订单，需勾选写操作确认</span>}
+            </>
+          ) : "从列表里选一条用例：直接点「运行这条用例」即由平台驱动浏览器按步骤执行"}
+        </div>
+      </Card>
+
+      {/* 单条执行回放 */}
+      {one && (
+        <Card title="单条执行回放" extra={
+          <span className="flex items-center gap-2 text-[11px] text-ink-500">
+            <span className="font-mono">{one.runId}</span>
+            <span>{(one.durationMs / 1000).toFixed(1)}s</span>
+            <Tag t={one.verdict} c={one.verdict === "通过" ? "green" : one.verdict === "失败" ? "red" : "amber"} dot={false} />
+          </span>
+        }>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "结论", value: one.verdict, c: one.verdict === "通过" ? "text-green-600" : one.verdict === "失败" ? "text-red-600" : "text-amber-600" },
+              { label: "步骤", value: `${one.steps.filter((s) => s.status === "passed").length}/${one.steps.length} 通过`, c: "text-ink-800" },
+              { label: "业务断言", value: `${one.assertionsPassed}/${one.assertions}`, c: "text-ink-800" },
+              { label: "Page Object", value: one.pageObject || "—", c: "text-brand-600" },
+            ].map((x) => (
+              <div key={x.label} className="rounded-lg border border-line px-3 py-2">
+                <div className="text-[10px] text-ink-500">{x.label}</div>
+                <div className={cx("mt-0.5 truncate text-sm font-semibold", x.c)}>{x.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-1 text-[10px] text-ink-400">点击任意步骤，查看它实际执行的关键字、定位器与输入值</div>
+          <div className="mt-1 overflow-hidden rounded-lg border border-line">
+            <div className="grid grid-cols-[18px_32px_1.4fr_70px_58px_1.5fr] gap-2 border-b border-line bg-ink-50/60 px-2.5 py-1.5 text-[10px] font-medium text-ink-500">
+              <span /><span>#</span><span>步骤（用例原文 / PO 展开）</span><span>关键字</span><span>耗时</span><span>详情</span>
+            </div>
+            {one.steps.map((s) => {
+              const ir = one.irSteps.find((x) => x.index === s.index);
+              const opened = expandedStep === s.index;
+              const args = ir ? Object.entries(ir.args)
+                .map(([k, v]) => `${k}=${typeof v === "string" ? v : JSON.stringify(v)}`).join("  ·  ") : "";
+              return (
+                <div key={s.index} className="border-b border-line/60 last:border-0">
+                  <button onClick={() => setExpandedStep(opened ? null : s.index)}
+                    className="grid w-full grid-cols-[18px_32px_1.4fr_70px_58px_1.5fr] items-center gap-2 px-2.5 py-1.5 text-left text-[11px] hover:bg-ink-50/60">
+                    <span className={cx("text-[9px] text-ink-400 transition-transform", opened && "rotate-90")}>▶</span>
+                    <span className="font-mono text-ink-400">{s.index}</span>
+                    <span className={cx("truncate", s.status === "failed" ? "text-red-700" : "text-ink-800")} title={s.raw}>{s.raw}</span>
+                    <span className="font-mono text-[10px] text-ink-500">{s.keyword}</span>
+                    <span className="text-[10px] text-ink-400">{s.durationMs != null ? `${s.durationMs}ms` : "—"}</span>
+                    <span className={cx("truncate text-[10px]",
+                      s.status === "failed" ? "text-red-600" : s.status === "blocked" ? "text-amber-600" : "text-ink-400")}
+                      title={s.detail}>
+                      {s.status === "passed" ? "通过" : s.detail || STATUS_CN[s.status] || s.status}
+                    </span>
+                  </button>
+                  {opened && (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line/60 bg-ink-50/40 px-3 py-2 text-[10px]">
+                      <div><span className="text-ink-400">用例原文：</span><span className="text-ink-700">{s.raw}</span></div>
+                      <div><span className="text-ink-400">执行关键字：</span><span className="font-mono text-ink-700">{s.keyword}</span></div>
+                      <div className="col-span-2 break-all">
+                        <span className="text-ink-400">执行参数：</span>
+                        <span className="font-mono text-ink-700">{args || "—（此步无需参数）"}</span>
+                      </div>
+                      {ir?.note && (
+                        <div className="col-span-2"><span className="text-ink-400">PO 展开说明：</span><span className="text-ink-600">{ir.note}</span></div>
+                      )}
+                      <div className="col-span-2">
+                        <span className="text-ink-400">执行详情：</span>
+                        <span className={s.status === "failed" ? "text-red-600" : "text-ink-600"}>
+                          {s.detail || (s.status === "passed" ? "成功" : STATUS_CN[s.status] || "—")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="col-span-2 space-y-2">
+              <div className="rounded-lg border border-line px-2.5 py-2 text-[11px]">
+                <div className="text-[10px] text-ink-500">最终页面</div>
+                <div className="mt-0.5 break-all font-mono text-[10px] text-brand-600">{one.finalUrl || "—"}</div>
+              </div>
+              <div className="rounded-lg border border-line px-2.5 py-2 text-[11px]">
+                <div className="text-[10px] text-ink-500">页面文本（前 300 字，证明真的渲染到了这一步）</div>
+                <div className="mt-0.5 line-clamp-3 text-[10px] text-ink-600">{one.pageText || "—"}</div>
+              </div>
+              {one.orderNo && (
+                <div className="rounded-lg border border-green-200 bg-green-50/60 px-2.5 py-2 text-[11px] text-green-800">
+                  <span className="font-medium">真实落库订单：</span>
+                  <span className="font-mono">{one.orderNo}</span>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Btn v="secondary" size="sm" onClick={() => setScriptOpen(true)}>查看本次执行脚本</Btn>
+                {one.stepShots.length > 0 && <Btn v="ghost" size="sm" onClick={() => setShotOpen(true)}>放大截图</Btn>}
+                {one.videoUrl && <a className="text-[11px] text-brand-600 underline" href={one.videoUrl} target="_blank" rel="noreferrer">下载/播放视频</a>}
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 text-[10px] text-ink-500">执行截图</div>
+              {one.stepShots.length > 0 ? (
+                <button onClick={() => setShotOpen(true)} className="block w-full overflow-hidden rounded-lg border border-line">
+                  <img src={one.stepShots[one.stepShots.length - 1].url} alt="执行截图" className="h-32 w-full object-cover object-top" />
+                </button>
+              ) : (
+                <div className="grid h-32 place-items-center rounded-lg border border-dashed border-line text-[10px] text-ink-400">无截图</div>
+              )}
+              <div className="mt-1 text-[10px] text-ink-400">{one.stepShots.length} 张截图 · {one.videoUrl ? "已录屏" : "无视频"}</div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* 编译 + 执行控制台 */}
       <Card title="UI 自动化执行台" extra={
         <span className="flex items-center gap-2 text-[11px] text-ink-500">
@@ -112,11 +435,33 @@ export function UiScripts() {
             {compiling ? "编译中…" : "编译功能测试用例"}
           </Btn>
           <Btn v="secondary" size="sm" onClick={() => void compile(true)} disabled={compiling}>重新编译全部</Btn>
-          <Btn onClick={() => void runAll()} disabled={running || data.length === 0}>
-            {running ? "执行中…" : "执行全部自动化用例"}
+          <span className="mx-1 h-4 w-px bg-line" />
+          <span className="text-[11px] text-ink-500">条数</span>
+          <Input className="w-16" value={String(limit)} onChange={(e) => setLimit(Number(e.target.value) || 1)} />
+          <span className="text-[11px] text-ink-500">写操作配额</span>
+          <Input className="w-14" value={String(maxWrite)} onChange={(e) => setMaxWrite(Number(e.target.value) || 0)} />
+          <Btn onClick={() => void runAll()} disabled={running}>
+            {running ? "真实执行中…" : "批量真实执行"}
           </Btn>
-          <span className="text-[11px] text-ink-400">步骤间自动延时 300ms · 单浏览器池复用 · 失败自动截图</span>
+          <span className="text-[11px] text-ink-400">步骤间 300ms · 单浏览器池复用 · 真实断言 · 失败自动截图</span>
         </div>
+
+        {batch && (
+          <div className="mt-3 rounded-lg border border-line px-3 py-2">
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className={cx("h-2 w-2 rounded-full", batch.status === "running" ? "bg-amber-500 animate-pulse" : batch.status === "finished" ? "bg-green-500" : "bg-red-500")} />
+              <span className="font-mono text-ink-500">{batch.jobId}</span>
+              <span className="text-ink-700">{batch.status === "running" ? "执行中" : batch.status === "finished" ? "已完成" : "失败"}</span>
+              <span className="ml-auto text-ink-500">{batch.index} / {batch.total}</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100">
+              <div className="h-full rounded-full bg-brand-500 transition-all"
+                style={{ width: `${Math.min(100, Math.round((batch.index / Math.max(1, batch.total)) * 100))}%` }} />
+            </div>
+            {batch.current && <div className="mt-1 truncate text-[10px] text-ink-400">{batch.current}</div>}
+          </div>
+        )}
+
         {compileInfo && (
           <div className="mt-3 grid grid-cols-4 gap-2">
             {[
@@ -144,6 +489,101 @@ export function UiScripts() {
           </div>
         )}
       </Card>
+
+      {/* 批量真实执行结果 */}
+      {batchResult && (
+        <>
+          <Card title="真实执行结果" extra={<span className="text-[11px] text-ink-500">{batchResult.generatedAt} · 目标 {batchResult.target}</span>}>
+            <div className="grid grid-cols-6 gap-2">
+              {[
+                { label: "真实执行", value: batchResult.executed, c: "text-ink-800" },
+                { label: "通过", value: batchResult.passed, c: "text-green-600" },
+                { label: "失败", value: batchResult.failed, c: "text-red-600" },
+                { label: "通过率", value: `${batchResult.passRate}%`, c: "text-brand-600" },
+                { label: "写操作真实落库", value: batchResult.writeExecuted, c: "text-amber-600" },
+                { label: "总耗时", value: `${batchResult.totalSeconds}s`, c: "text-ink-600" },
+              ].map((x) => (
+                <div key={x.label} className="rounded-lg border border-line px-3 py-2">
+                  <div className="text-[10px] text-ink-500">{x.label}</div>
+                  <div className={cx("mt-0.5 text-lg font-semibold", x.c)}>{x.value}</div>
+                </div>
+              ))}
+            </div>
+            {batchLink && (
+              <div className="mt-2 flex items-center gap-2">
+                <Btn v="secondary" size="sm" onClick={() => navigate(batchLink)}>查看批次详情（逐条截图 / 视频）</Btn>
+                <span className="text-[10px] text-ink-400">本次批量已折叠为执行记录里的一条批次</span>
+              </div>
+            )}
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className="mb-1 text-[11px] font-medium text-ink-600">按 Page Object 汇总</div>
+                <div className="overflow-hidden rounded-lg border border-line">
+                  {Object.entries(batchResult.byPageObject).map(([name, s]) => (
+                    <div key={name} className="flex items-center gap-2 border-b border-line/60 px-2 py-1 text-[11px] last:border-0">
+                      <span className="min-w-0 flex-1 truncate text-ink-700">{name}</span>
+                      <span className="text-ink-500">{s.passed}/{s.total}</span>
+                      {s.failed > 0 && <Tag t={`失败 ${s.failed}`} c="red" dot={false} />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="mb-1 text-[11px] font-medium text-ink-600">失败明细（真实错误）</div>
+                <div className="max-h-40 overflow-auto rounded-lg border border-line">
+                  {batchResult.failures.length === 0 && <div className="px-2 py-3 text-[11px] text-ink-400">无失败</div>}
+                  {batchResult.failures.map((f) => (
+                    <div key={f.caseId} className="border-b border-line/60 px-2 py-1.5 text-[11px] last:border-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-ink-400">{f.caseId}</span>
+                        <span className="min-w-0 flex-1 truncate">{f.caseTitle}</span>
+                      </div>
+                      <div className="mt-0.5 text-red-600">{f.failedStep} · {f.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {batchResult.results.some((r) => r.orderNos.length > 0) && (
+              <div className="mt-3 rounded-lg border border-green-200 bg-green-50/50 px-3 py-2 text-[11px] text-green-800">
+                <span className="font-medium">真实落库订单：</span>
+                {batchResult.results.flatMap((r) => r.orderNos.map((n) => `${r.caseId} → ${n}`)).join("；")}
+              </div>
+            )}
+          </Card>
+
+          <Card title="逐条执行证据" extra={<span className="text-[11px] text-ink-500">断言 {batchResult.results.reduce((a, r) => a + r.assertionsPassed, 0)}/{batchResult.results.reduce((a, r) => a + r.assertions, 0)} 通过</span>}>
+            <div className="max-h-96 space-y-1.5 overflow-auto">
+              {batchResult.results.map((r) => (
+                <div key={r.caseId} className="rounded-lg border border-line px-2.5 py-1.5">
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="font-mono text-ink-400">{r.caseId}</span>
+                    <span className="min-w-0 flex-1 truncate text-ink-700">{r.caseTitle}</span>
+                    <Tag t={r.pageObject} c="blue" dot={false} />
+                    {r.writeFlow && <Tag t="写操作" c="amber" dot={false} />}
+                    <span className="text-ink-400">{r.seconds}s</span>
+                    <Tag t={r.verdict} c={r.verdict === "通过" ? "green" : "red"} dot={false} />
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {r.steps.map((s) => (
+                      <span key={s.index} title={`${s.raw}${s.detail ? ` · ${s.detail}` : ""}`}
+                        className={cx("rounded px-1.5 py-0.5 font-mono text-[10px]",
+                          s.status === "passed" ? "bg-green-50 text-green-700"
+                            : s.status === "failed" ? "bg-red-50 text-red-700"
+                              : "bg-amber-50 text-amber-700")}>
+                        {s.index}.{s.keyword}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-1 truncate text-[10px] text-ink-400">
+                    最终页面：{r.finalUrl || "—"}{r.orderNos.length > 0 ? ` · 订单号 ${r.orderNos.join(",")}` : ""}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </>
+      )}
 
       {/* 执行结果 */}
       {results && (
@@ -217,6 +657,22 @@ export function UiScripts() {
           ) : <Empty text="请选择或编译脚本" />}
         </Card>
       </div>
+
+      <Modal open={shotOpen} title={`执行截图 · ${one?.caseId ?? ""}`} width="max-w-5xl"
+        onClose={() => setShotOpen(false)} footer={<Btn v="ghost" onClick={() => setShotOpen(false)}>关闭</Btn>}>
+        {one && one.stepShots.length > 0
+          ? <img src={one.stepShots[one.stepShots.length - 1].url} alt="执行截图" className="w-full rounded-lg border border-line" />
+          : <Empty text="本次执行没有截图" />}
+        {one?.screenshot && <div className="mt-2 break-all font-mono text-[10px] text-ink-400">{one.screenshot}</div>}
+      </Modal>
+
+      <Modal open={scriptOpen} title={`本次执行脚本 · ${one?.caseId ?? ""}`} width="max-w-4xl"
+        onClose={() => setScriptOpen(false)} footer={<Btn v="ghost" onClick={() => setScriptOpen(false)}>关闭</Btn>}>
+        <div className="mb-2 text-[11px] text-ink-500">
+          由「用例原文 → Page Object 展开 → 关键字」生成的 Playwright 脚本，断言语义与平台执行内核一致，可导出后独立复跑。
+        </div>
+        <MonacoEditor value={one?.script ?? ""} onChange={() => undefined} language="python" height={420} path={`${one?.caseId ?? "case"}.py`} />
+      </Modal>
 
       <Modal open={open} title="新建用例脚本" onClose={() => setOpen(false)}
         footer={<><Btn v="ghost" onClick={() => setOpen(false)}>取消</Btn><Btn onClick={create}>创建</Btn></>}>

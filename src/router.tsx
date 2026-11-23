@@ -26,6 +26,8 @@ const ProfileKeys = page(() => import("@/pages/global/ProfileKeys"), "ProfileKey
 const Overview = page(() => import("@/pages/project/Overview"), "Overview");
 const RequirementList = page(() => import("@/pages/project/RequirementList"), "RequirementList");
 const RequirementDetail = page(() => import("@/pages/project/RequirementDetail"), "RequirementDetail");
+const RequirementCoverage = page(() => import("@/pages/project/RequirementCoverage"), "RequirementCoverage");
+const RequirementRegressionPlan = page(() => import("@/pages/project/RequirementRegressionPlan"), "RequirementRegressionPlan");
 const TraceCenter = page(() => import("@/pages/project/TraceCenter"), "TraceCenter");
 const TraceEntity = page(() => import("@/pages/project/TraceEntity"), "TraceEntity");
 const CaseList = page(() => import("@/pages/project/CaseList"), "CaseList");
@@ -40,6 +42,8 @@ const ElementLibrary = page(() => import("@/pages/project/ElementLibrary"), "Ele
 const UiScripts = page(() => import("@/pages/project/UiScripts"), "UiScripts");
 const Recorder = page(() => import("@/pages/project/Recorder"), "Recorder");
 const UiRuns = page(() => import("@/pages/project/UiRuns"), "UiRuns");
+const UiRunBatch = page(() => import("@/pages/project/UiRunBatch"), "UiRunBatch");
+const UiBindings = page(() => import("@/pages/project/UiBindings"), "UiBindings");
 const Devices = page(() => import("@/pages/project/Devices"), "Devices");
 const UiFlow = page(() => import("@/pages/project/UiFlow"), "UiFlow");
 const AppRuns = page(() => import("@/pages/project/AppRuns"), "AppRuns");
@@ -95,6 +99,8 @@ export function AppRouter() {
           <Route path="overview" element={<Overview />} />
           <Route path="requirements" element={<RequirementList />} />
           <Route path="requirements/:rid" element={<RequirementDetail />} />
+          <Route path="requirements-coverage" element={<RequirementCoverage />} />
+          <Route path="requirements-regression" element={<RequirementRegressionPlan />} />
           <Route path="trace" element={<TraceCenter />} />
           <Route path="trace/entity" element={<TraceEntity />} />
           <Route path="testcases" element={<CaseList />} />
@@ -109,6 +115,8 @@ export function AppRouter() {
           <Route path="webui/scripts" element={<UiScripts />} />
           <Route path="webui/recorder" element={<Recorder />} />
           <Route path="webui/runs" element={<UiRuns />} />
+          <Route path="webui/runs/:runId" element={<UiRunBatch />} />
+          <Route path="webui/bindings" element={<UiBindings />} />
           <Route path="app" element={<Devices />} />
           <Route path="app/flow" element={<UiFlow />} />
           <Route path="app/runs" element={<AppRuns />} />

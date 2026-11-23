@@ -259,11 +259,18 @@ export function TraceEntity() {
               {(extra.indexes ?? []).length > 0 && (
                 <Card title="索引">
                   <Table cols={["索引名", "字段", "唯一"]}
-                    rows={(extra.indexes ?? []).map((x) => [
-                      <span className="font-mono text-[12px]">{x.name}</span>,
-                      <span className="font-mono text-[11px] text-ink-600">{x.columns.join(", ")}</span>,
-                      x.unique ? "是" : "否",
-                    ])} />
+                    rows={(extra.indexes ?? []).map((x) => {
+                      const cols = Array.isArray(x.columns)
+                        ? x.columns
+                        : typeof x.columns === "string" ? x.columns.split(",").map((s) => s.trim()) : [];
+                      return [
+                        <span className="font-mono text-[12px]">{x.name}</span>,
+                        <span className="font-mono text-[11px] text-ink-600" title={x.definition || ""}>
+                          {cols.filter(Boolean).join(", ") || x.definition || "—"}
+                        </span>,
+                        x.unique ? "是" : "否",
+                      ];
+                    })} />
                 </Card>
               )}
             </>

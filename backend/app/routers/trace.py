@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any, Literal
@@ -180,6 +181,47 @@ def _entity_name(etype: str, obj) -> str:
         if v:
             return str(v)
     return getattr(obj, "id", "")
+
+
+def _normalize_index(idx: Any) -> dict[str, Any]:
+    """把扫描来的索引元数据统一成 {name, columns[], unique, definition}。
+
+    数据来源有两种形态：代码扫描拿到的是 pg_indexes 里的整条 DDL
+    （只有 definition），人工登记的表可能直接给 columns。前端只认 columns 列表，
+    这里统一补齐，避免 "Cannot read properties of undefined (reading 'join')"。
+    """
+    if isinstance(idx, str):
+        return {"name": idx, "columns": [], "unique": False, "definition": ""}
+    if not isinstance(idx, dict):
+        return {"name": str(idx), "columns": [], "unique": False, "definition": ""}
+
+    raw_cols = idx.get("columns")
+    if isinstance(raw_cols, str):
+        columns = [c.strip() for c in raw_cols.split(",") if c.strip()]
+    elif isinstance(raw_cols, (list, tuple)):
+        columns = [str(c) for c in raw_cols]
+    else:
+        columns = []
+
+    definition = str(idx.get("definition") or idx.get("ddl") or "")
+    if not columns and definition:
+        # CREATE [UNIQUE] INDEX x ON schema.tbl USING btree (col_a, col_b DESC) WHERE ...
+        m = re.search(r"USING\s+\w+\s*\(([^)]*)\)", definition, re.IGNORECASE)
+        if not m:
+            m = re.search(r"\(([^()]*(?:,[^()]*)*)\)\s*(?:WHERE|$)", definition, re.IGNORECASE)
+        if m:
+            columns = [c.strip().split()[0].strip('"') for c in m.group(1).split(",") if c.strip()]
+
+    unique = idx.get("unique")
+    if unique is None and definition:
+        unique = "UNIQUE INDEX" in definition.upper()
+
+    return {
+        "name": str(idx.get("name") or ""),
+        "columns": columns,
+        "unique": bool(unique),
+        "definition": definition,
+    }
 
 
 def _validate_relation(src_type: str, rel_type: str, dst_type: str) -> None:
@@ -421,6 +463,8 @@ def entity_detail_full(entity_type: str, entity_id: str,
     for k, v in list(base.items()):
         if hasattr(v, "isoformat"):
             base[k] = v.isoformat()
+    if isinstance(base.get("indexes"), list):
+        base["indexes"] = [_normalize_index(x) for x in base["indexes"]]
 
     def rel_pkg(rel: TraceRelation, other_type: str, other_id: str, reverse: bool) -> dict[str, Any]:
         m, _ = ENTITY_MAP.get(other_type, (None, ""))
@@ -470,7 +514,7 @@ def entity_detail_full(entity_type: str, entity_id: str,
 
     elif etype == "table":
         extra["columns"] = obj.columns or []
-        extra["indexes"] = obj.indexes or []
+        extra["indexes"] = [_normalize_index(x) for x in (obj.indexes or [])]
         extra["primaryKey"] = obj.primary_key
         extra["writers"] = [{"type": r["type"], "id": r["id"], "name": r["name"],
                              "relLabel": r["relLabel"]} for r in up]

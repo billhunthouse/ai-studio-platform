@@ -14,14 +14,14 @@ export const MENUS: Record<Layer, MenuItem[]> = {
   ],
   project: [
     { key: "overview", label: "项目概览", tabs: [{ label: "概览", path: "overview" }] },
-    { key: "requirements", label: "需求管理", tabs: [{ label: "需求列表", path: "requirements" }, { label: "需求详情", path: "requirements/:rid" }] },
+    { key: "requirements", label: "需求管理", tabs: [{ label: "需求列表", path: "requirements" }, { label: "需求覆盖率", path: "requirements-coverage" }, { label: "回归计划", path: "requirements-regression" }, { label: "需求详情", path: "requirements/:rid", hidden: true }] },
     { key: "trace", label: "需求字段列", tabs: [
       { label: "字段列表", path: "trace" },
       { label: "实体详情", path: "trace/entity", hidden: true },
     ] },
     { key: "testcases", label: "测试用例", tabs: [{ label: "用例列表", path: "testcases" }, { label: "AI 生成用例", path: "testcases/generate" }, { label: "用例评审", path: "testcases/review" }] },
     { key: "api", label: "API 测试", tabs: [{ label: "接口管理", path: "api" }, { label: "调试面板", path: "api/debug" }, { label: "套件与定时任务", path: "api/suites" }, { label: "执行报告", path: "api/reports" }] },
-    { key: "webui", label: "WebUI 自动化", tabs: [{ label: "元素库", path: "webui" }, { label: "用例脚本", path: "webui/scripts" }, { label: "录制回放", path: "webui/recorder" }, { label: "执行记录", path: "webui/runs" }] },
+    { key: "webui", label: "WebUI 自动化", tabs: [{ label: "用例脚本", path: "webui/scripts" }, { label: "执行记录", path: "webui/runs" }, { label: "批次详情", path: "webui/runs/:runId", hidden: true }, { label: "绑定体检", path: "webui/bindings" }, { label: "录制回放", path: "webui/recorder" }, { label: "元素库", path: "webui" }] },
     { key: "app", label: "App 自动化", tabs: [{ label: "设备管理", path: "app" }, { label: "UI Flow 编排", path: "app/flow" }, { label: "执行记录", path: "app/runs" }] },
     { key: "ai", label: "AI 助手", tabs: [{ label: "对话助手", path: "ai/chat" }, { label: "工作流编排器", path: "ai/workflow" }] },
     { key: "knowledge", label: "知识库", tabs: [{ label: "知识库列表", path: "knowledge" }, { label: "文档管理", path: "knowledge/documents" }, { label: "召回测试", path: "knowledge/recall" }, { label: "学习中心", path: "knowledge/learning" }] },

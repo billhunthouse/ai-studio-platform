@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { requirementsApi } from "@/api";
+import { prdApi, requirementsApi } from "@/api";
 import type { Requirement } from "@/api/types";
 import { useAsync } from "@/hooks/useAsync";
 import { useApp } from "@/store/app";
@@ -12,6 +12,7 @@ const STATUSES = ["全部状态", "待解析", "解析中", "已解析", "待评
 
 export function RequirementList() {
   const { data, setData, reload, loading } = useAsync(() => requirementsApi.list(), [], [] as Requirement[]);
+  const { data: cover } = useAsync(() => prdApi.coverage().catch(() => null), [], null as { requirementCoverage: number; verifiedCoverage: number; detail: { withCase: number; verified: number; caseTotal: number; caseNotRun: number } } | null);
   const { projectId, addTask, toast } = useApp();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -162,22 +163,38 @@ export function RequirementList() {
   return (
     <>
       <Card>
-        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {[
             ["业务模块", moduleRoots.length, "按主需求分组"],
             ["独立需求", standaloneRoots.length, "文档或单条需求"],
             ["子需求", subCount, "已拆分的功能点"],
             ["需求总数", data.length, "当前项目范围"],
-          ].map(([label, value, hint]) => (
-            <div key={String(label)} className="rounded-xl border border-line bg-ink-50/60 px-4 py-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="text-[11px] font-medium text-ink-500">{label}</div>
-                <Icon name="folder" size={14} className="text-ink-300" />
-              </div>
-              <div className="mt-1 tabular-nums text-[22px] font-semibold leading-none tracking-[-0.03em] text-ink-900">{value}</div>
-              <div className="mt-1.5 text-[10px] text-ink-400">{hint}</div>
-            </div>
-          ))}
+            ["需求覆盖率", cover ? `${Math.round(cover.requirementCoverage * 100)}%` : "—",
+              cover ? `已验证 ${Math.round(cover.verifiedCoverage * 100)}% · ${cover.detail.caseNotRun}/${cover.detail.caseTotal} 条用例未执行` : "点击查看覆盖缺口"],
+          ].map(([label, value, hint]) => {
+            const clickable = label === "需求覆盖率";
+            return (
+              <button
+                key={String(label)}
+                type="button"
+                disabled={!clickable}
+                onClick={() => clickable && navigate(`/project/${projectId}/requirements-coverage`)}
+                className={cx(
+                  "rounded-xl border px-4 py-3 text-left transition-colors",
+                  clickable
+                    ? "border-brand-200 bg-brand-50/50 hover:border-brand-300 hover:bg-brand-50"
+                    : "border-line bg-ink-50/60",
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-[11px] font-medium text-ink-500">{label}</div>
+                  <Icon name={clickable ? "activity" : "folder"} size={14} className={clickable ? "text-brand-400" : "text-ink-300"} />
+                </div>
+                <div className="mt-1 tabular-nums text-[22px] font-semibold leading-none tracking-[-0.03em] text-ink-900">{value}</div>
+                <div className="mt-1.5 text-[10px] text-ink-400">{hint}</div>
+              </button>
+            );
+          })}
         </div>
 
         <Toolbar

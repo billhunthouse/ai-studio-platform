@@ -1,0 +1,522 @@
+{
+  "jobId": "UIJOB-1795251340625",
+  "generatedAt": "2026-11-21 16:56:18",
+  "target": "http://127.0.0.1:5174 (尚品汇 C 端真实前端)",
+  "compiled": {
+    "total": 363,
+    "ready": 289,
+    "partial": 74,
+    "blocked": 0
+  },
+  "executed": 2,
+  "passed": 2,
+  "failed": 0,
+  "partial": 0,
+  "skippedCount": 0,
+  "passRate": 100.0,
+  "totalSeconds": 36.8,
+  "pool": {
+    "browserAlive": true,
+    "activeContexts": 0,
+    "idleSeconds": 0.0
+  },
+  "writeExecuted": 2,
+  "byPageObject": {
+    "收银台支付闭环": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "partial": 0
+    },
+    "完整下单流程": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "partial": 0
+    }
+  },
+  "failures": [],
+  "skippedCases": [],
+  "results": [
+    {
+      "caseId": "TC-1427",
+      "caseTitle": "[NEG-S12] 支付/发货/售后审核为读-改-写且无行锁，可并发双通过",
+      "module": "订单交易",
+      "pageObject": "收银台支付闭环",
+      "writeFlow": true,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1083
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 372
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 315
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 380
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1505
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 305
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 8,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 369
+        },
+        {
+          "index": 9,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 804
+        },
+        {
+          "index": 10,
+          "raw": "打开规格选择抽屉",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 354
+        },
+        {
+          "index": 11,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 703
+        },
+        {
+          "index": 12,
+          "raw": "选择容量规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 13,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 14,
+          "raw": "选择颜色规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 326
+        },
+        {
+          "index": 15,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 405
+        },
+        {
+          "index": 16,
+          "raw": "点击立即购买",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 17,
+          "raw": "等待确认下单信息弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1003
+        },
+        {
+          "index": 18,
+          "raw": "确认下单信息",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 327
+        },
+        {
+          "index": 19,
+          "raw": "等待确认订单页",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 2209
+        },
+        {
+          "index": 20,
+          "raw": "断言进入确认订单页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 21,
+          "raw": "断言存在提交订单按钮",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        },
+        {
+          "index": 22,
+          "raw": "点击提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 329
+        },
+        {
+          "index": 23,
+          "raw": "等待二次确认弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1203
+        },
+        {
+          "index": 24,
+          "raw": "二次确认提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 349
+        },
+        {
+          "index": 25,
+          "raw": "等待订单创建",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 3002
+        },
+        {
+          "index": 26,
+          "raw": "断言跳转收银台",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 27,
+          "raw": "断言展示新订单号",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 308
+        },
+        {
+          "index": 28,
+          "raw": "断言收银台返回支付成功",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 309
+        }
+      ],
+      "assertions": 7,
+      "assertionsPassed": 7,
+      "finalUrl": "http://127.0.0.1:5174/pay/2124064255278247937",
+      "pageText": "中国大陆 · 北京 | Hi，张三 | 我的尚品汇 | 购物车(42) | 收藏夹 | 我的订单 | 尚品汇 | 选好物，享生活 | 商品 ▾ | 搜索 | iPhone 15 | 戴森吸尘器 | MacBook | AirPods | 罗技鼠标 | 热门精选 SPU | 活动位 · 热门精选 | 活动位 · 新品上架 | 活动位 · 品牌专区 | 全部分类 | 收银台 | 支付成功 | 订单号 O202611211655560035 · 待发货 |  | 商家将尽快为你发货，发货后可查看物流轨迹 |  | 返回首页 | 查看支付结果 |  | 本版本为模拟支付，无真实资金流；支付失败订单保持待付款，可重试。 |  | 购物车 | 收藏 | 订单 | 我的 | 尚品汇 · Web 门户 · 选好物，享生活 | AI | AI 助手",
+      "orderNos": [
+        "O202611211655560035"
+      ],
+      "screenshot": "/tmp/ui-auto-shots/ok_TC-1427_1795251360.png",
+      "durationMs": 18230,
+      "seconds": 18.2
+    },
+    {
+      "caseId": "TC-1691",
+      "caseTitle": "下单快照一致性（商品信息变更不影响已有订单）",
+      "module": "订单交易",
+      "pageObject": "完整下单流程",
+      "writeFlow": true,
+      "verdict": "通过",
+      "steps": [
+        {
+          "index": 1,
+          "raw": "进入登录页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 697
+        },
+        {
+          "index": 2,
+          "raw": "输入手机号",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 332
+        },
+        {
+          "index": 3,
+          "raw": "输入验证码",
+          "keyword": "fill",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 315
+        },
+        {
+          "index": 4,
+          "raw": "点击登录按钮",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 326
+        },
+        {
+          "index": 5,
+          "raw": "等待登录完成",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1502
+        },
+        {
+          "index": 6,
+          "raw": "断言已离开登录页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 304
+        },
+        {
+          "index": 7,
+          "raw": "断言页头出现登录用户名",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 310
+        },
+        {
+          "index": 8,
+          "raw": "进入商品详情页",
+          "keyword": "nav",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 357
+        },
+        {
+          "index": 9,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 802
+        },
+        {
+          "index": 10,
+          "raw": "打开规格选择抽屉",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 372
+        },
+        {
+          "index": 11,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 702
+        },
+        {
+          "index": 12,
+          "raw": "选择容量规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 322
+        },
+        {
+          "index": 13,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 303
+        },
+        {
+          "index": 14,
+          "raw": "选择颜色规格",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 331
+        },
+        {
+          "index": 15,
+          "raw": "等待页面响应",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 403
+        },
+        {
+          "index": 16,
+          "raw": "点击立即购买",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 335
+        },
+        {
+          "index": 17,
+          "raw": "等待确认下单信息弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1025
+        },
+        {
+          "index": 18,
+          "raw": "确认下单信息",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 334
+        },
+        {
+          "index": 19,
+          "raw": "等待确认订单页",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 2206
+        },
+        {
+          "index": 20,
+          "raw": "断言进入确认订单页",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 305
+        },
+        {
+          "index": 21,
+          "raw": "断言存在提交订单按钮",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 314
+        },
+        {
+          "index": 22,
+          "raw": "点击提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 331
+        },
+        {
+          "index": 23,
+          "raw": "等待二次确认弹窗",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 1202
+        },
+        {
+          "index": 24,
+          "raw": "二次确认提交订单",
+          "keyword": "click",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 333
+        },
+        {
+          "index": 25,
+          "raw": "等待订单创建",
+          "keyword": "wait",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 3004
+        },
+        {
+          "index": 26,
+          "raw": "断言跳转收银台",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 311
+        },
+        {
+          "index": 27,
+          "raw": "断言展示新订单号",
+          "keyword": "assert",
+          "status": "passed",
+          "detail": "",
+          "durationMs": 310
+        }
+      ],
+      "assertions": 6,
+      "assertionsPassed": 6,
+      "finalUrl": "http://127.0.0.1:5174/pay/2124064330180128770",
+      "pageText": "中国大陆 · 北京 | Hi，张三 | 我的尚品汇 | 购物车(42) | 收藏夹 | 我的订单 | 尚品汇 | 选好物，享生活 | 商品 ▾ | 搜索 | iPhone 15 | 戴森吸尘器 | MacBook | AirPods | 罗技鼠标 | 热门精选 SPU | 活动位 · 热门精选 | 活动位 · 新品上架 | 活动位 · 品牌专区 | 全部分类 | 收银台 | 支付成功 | 订单号 O202611211656140036 · 待发货 |  | 商家将尽快为你发货，发货后可查看物流轨迹 |  | 返回首页 | 查看支付结果 |  | 本版本为模拟支付，无真实资金流；支付失败订单保持待付款，可重试。 |  | 购物车 | 收藏 | 订单 | 我的 | 尚品汇 · Web 门户 · 选好物，享生活 | AI | AI 助手",
+      "orderNos": [
+        "O202611211656140036"
+      ],
+      "screenshot": "/tmp/ui-auto-shots/ok_TC-1691_1795251378.png",
+      "durationMs": 17462,
+      "seconds": 17.5
+    }
+  ]
+}

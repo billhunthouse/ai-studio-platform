@@ -110,6 +110,15 @@ export function RequirementDetail() {
         </div>
         <h2 className="mt-2 text-[16px] font-semibold leading-7 tracking-[-0.02em] text-ink-900">{req.title}</h2>
 
+        {req.description && (
+          <div className="mt-3 rounded-lg border border-line bg-ink-50/60 px-3 py-2.5">
+            <div className="mb-1 text-[10px] font-medium text-ink-500">需求摘要（规范化）</div>
+            <pre className="whitespace-pre-wrap break-words font-sans text-[11px] leading-5 text-ink-700">
+              {req.description.split("\n原始来源")[0]}
+            </pre>
+          </div>
+        )}
+
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-ink-100 pt-4">
           <div>
             <dt className="text-[11px] text-ink-500">优先级</dt>
@@ -212,9 +221,9 @@ export function RequirementDetail() {
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3 rounded-card border border-line bg-white px-5 py-3">
           <div>
-            <div className="text-[13px] font-semibold text-ink-900">需求文档（代码还原）</div>
+            <div className="text-[13px] font-semibold text-ink-900">需求文档（规范化 v2）</div>
             <div className="mt-0.5 text-[11px] text-ink-500">
-              由产品文档 AGENT 从追溯链、接口契约、表结构与业务规则逆向还原
+              基于代码证据还原事实，并按《需求文档规范》补齐范围、角色、术语、NFR、数据字典与质量门禁
             </div>
           </div>
           <Btn v="secondary" size="sm" loading={regenerating} onClick={regenerate}>
